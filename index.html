@@ -1,1 +1,588 @@
-<script language=javascript>document.write(unescape('%3C%21DOCTYPE%20html%3E%0A%3Chtml%20lang%3D%22bn%22%3E%0A%3Chead%3E%0A%20%20%3Cmeta%20charset%3D%22UTF-8%22%3E%0A%20%20%3Cmeta%20name%3D%22viewport%22%20content%3D%22width%3Ddevice-width%2C%20initial-scale%3D1.0%22%3E%0A%20%20%3Ctitle%3ELive%20TV%20Pro%20Player%3C/title%3E%0A%20%20%0A%20%20%3C%21--%20HLS.js%20%26%20Plyr%20--%3E%0A%20%20%3Cscript%20src%3D%22https%3A//cdn.jsdelivr.net/npm/hls.js@latest%22%3E%3C/script%3E%0A%20%20%3Clink%20rel%3D%22stylesheet%22%20href%3D%22https%3A//cdn.plyr.io/3.7.8/plyr.css%22%20/%3E%0A%20%20%3Cscript%20src%3D%22https%3A//cdn.plyr.io/3.7.8/plyr.js%22%3E%3C/script%3E%0A%0A%20%20%3C%21--%20FontAwesome%20Icons%20--%3E%0A%20%20%3Clink%20rel%3D%22stylesheet%22%20href%3D%22https%3A//cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css%22%3E%0A%20%20%0A%20%20%3Cstyle%3E%0A%20%20%20%20%3Aroot%20%7B%0A%20%20%20%20%20%20--plyr-color-main%3A%20%23ff3b30%3B%0A%20%20%20%20%20%20--bg-color%3A%20%23121212%3B%0A%20%20%20%20%20%20--card-bg%3A%20%231e1e1e%3B%0A%20%20%20%20%20%20--card-border%3A%20%232a2a2a%3B%0A%20%20%20%20%20%20--text-color%3A%20%23ffffff%3B%0A%20%20%20%20%20%20--text-muted%3A%20%23888888%3B%0A%20%20%20%20%20%20--header-bg%3A%20%231f1f1f%3B%0A%20%20%20%20%20%20--modal-bg%3A%20%231c1c1c%3B%0A%20%20%20%20%20%20--border-color%3A%20%23333333%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20%5Bdata-theme%3D%22light%22%5D%20%7B%0A%20%20%20%20%20%20--bg-color%3A%20%23f4f5f7%3B%0A%20%20%20%20%20%20--card-bg%3A%20%23ffffff%3B%0A%20%20%20%20%20%20--card-border%3A%20%23e0e0e0%3B%0A%20%20%20%20%20%20--text-color%3A%20%23111111%3B%0A%20%20%20%20%20%20--text-muted%3A%20%23666666%3B%0A%20%20%20%20%20%20--header-bg%3A%20%23ffffff%3B%0A%20%20%20%20%20%20--modal-bg%3A%20%23ffffff%3B%0A%20%20%20%20%20%20--border-color%3A%20%23e5e5e5%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20*%20%7B%20box-sizing%3A%20border-box%3B%20margin%3A%200%3B%20padding%3A%200%3B%20font-family%3A%20%27Segoe%20UI%27%2C%20Tahoma%2C%20Geneva%2C%20Verdana%2C%20sans-serif%3B%20transition%3A%20background-color%200.3s%2C%20color%200.3s%3B%20%7D%0A%20%20%20%20body%20%7B%20background-color%3A%20var%28--bg-color%29%3B%20color%3A%20var%28--text-color%29%3B%20padding-bottom%3A%2030px%3B%20%7D%0A%0A%20%20%20%20/*%20Premium%20Fullscreen%20Splash%20Screen%20Loader%20*/%0A%20%20%20%20%23page-loader%20%7B%0A%20%20%20%20%20%20position%3A%20fixed%3B%20top%3A%200%3B%20left%3A%200%3B%20width%3A%20100vw%3B%20height%3A%20100vh%3B%0A%20%20%20%20%20%20background%3A%20var%28--bg-color%29%3B%20z-index%3A%2099999%3B%0A%20%20%20%20%20%20display%3A%20flex%3B%20flex-direction%3A%20column%3B%20justify-content%3A%20center%3B%20align-items%3A%20center%3B%20gap%3A%2020px%3B%0A%20%20%20%20%20%20transition%3A%20opacity%200.5s%20ease%2C%20visibility%200.5s%20ease%3B%0A%20%20%20%20%7D%0A%20%20%20%20%0A%20%20%20%20.splash-logo-wrapper%20%7B%0A%20%20%20%20%20%20position%3A%20relative%3B%20display%3A%20flex%3B%20flex-direction%3A%20column%3B%20align-items%3A%20center%3B%20gap%3A%2012px%3B%0A%20%20%20%20%20%20animation%3A%20pulse%201.8s%20infinite%20ease-in-out%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20.splash-logo-wrapper%20i%20%7B%20font-size%3A%203.5rem%3B%20color%3A%20%23ff3b30%3B%20%7D%0A%20%20%20%20.splash-logo-wrapper%20h2%20%7B%20font-size%3A%201.6rem%3B%20font-weight%3A%20700%3B%20color%3A%20var%28--text-color%29%3B%20letter-spacing%3A%200.5px%3B%20%7D%0A%0A%20%20%20%20.loader-ring%20%7B%0A%20%20%20%20%20%20width%3A%2048px%3B%20height%3A%2048px%3B%20border%3A%204px%20solid%20rgba%28255%2C%2059%2C%2048%2C%200.15%29%3B%0A%20%20%20%20%20%20border-left-color%3A%20%23ff3b30%3B%20border-radius%3A%2050%25%3B%0A%20%20%20%20%20%20animation%3A%20spinRing%200.8s%20linear%20infinite%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20@keyframes%20spinRing%20%7B%200%25%20%7B%20transform%3A%20rotate%280deg%29%3B%20%7D%20100%25%20%7B%20transform%3A%20rotate%28360deg%29%3B%20%7D%20%7D%0A%20%20%20%20@keyframes%20pulse%20%7B%200%25%2C%20100%25%20%7B%20transform%3A%20scale%281%29%3B%20opacity%3A%200.9%3B%20%7D%2050%25%20%7B%20transform%3A%20scale%281.05%29%3B%20opacity%3A%201%3B%20%7D%20%7D%0A%0A%20%20%20%20header%20%7B%20display%3A%20flex%3B%20justify-content%3A%20space-between%3B%20align-items%3A%20center%3B%20padding%3A%2015px%2020px%3B%20background-color%3A%20var%28--header-bg%29%3B%20border-bottom%3A%201px%20solid%20var%28--border-color%29%3B%20%7D%0A%20%20%20%20.logo%20%7B%20display%3A%20flex%3B%20align-items%3A%20center%3B%20gap%3A%2010px%3B%20font-size%3A%201.2rem%3B%20font-weight%3A%20bold%3B%20color%3A%20%23ff3b30%3B%20%7D%0A%0A%20%20%20%20/*%20Animated%20Theme%20Toggle%20Button%20*/%0A%20%20%20%20.theme-toggle-btn%20%7B%0A%20%20%20%20%20%20background%3A%20var%28--card-bg%29%3B%20border%3A%201px%20solid%20var%28--card-border%29%3B%0A%20%20%20%20%20%20width%3A%2042px%3B%20height%3A%2042px%3B%20border-radius%3A%2050%25%3B%20display%3A%20flex%3B%0A%20%20%20%20%20%20align-items%3A%20center%3B%20justify-content%3A%20center%3B%20cursor%3A%20pointer%3B%0A%20%20%20%20%20%20font-size%3A%201.1rem%3B%20color%3A%20%23ff3b30%3B%20outline%3A%20none%3B%0A%20%20%20%20%20%20box-shadow%3A%200%202px%208px%20rgba%280%2C0%2C0%2C0.15%29%3B%20transition%3A%20transform%200.3s%20ease%3B%0A%20%20%20%20%7D%0A%20%20%20%20.theme-toggle-btn%20i%20%7B%20transition%3A%20transform%200.5s%20cubic-bezier%280.68%2C%20-0.55%2C%200.27%2C%201.55%29%3B%20%7D%0A%20%20%20%20.theme-toggle-btn%3Aactive%20i%20%7B%20transform%3A%20rotate%28360deg%29%20scale%281.3%29%3B%20%7D%0A%0A%20%20%20%20.sticky-player-area%20%7B%20position%3A%20sticky%3B%20top%3A%200%3B%20z-index%3A%2090%3B%20background-color%3A%20var%28--bg-color%29%3B%20padding%3A%2010px%200%3B%20border-bottom%3A%201px%20solid%20var%28--border-color%29%3B%20%7D%0A%20%20%20%20.player-wrapper%20%7B%20width%3A%20100%25%3B%20max-width%3A%20900px%3B%20margin%3A%200%20auto%3B%20background%3A%20%23000%3B%20border-radius%3A%2012px%3B%20overflow%3A%20hidden%3B%20box-shadow%3A%200%204px%2015px%20rgba%280%2C0%2C0%2C0.3%29%3B%20%7D%0A%0A%20%20%20%20.now-playing%20%7B%20padding%3A%2012px%2015px%3B%20background-color%3A%20var%28--card-bg%29%3B%20font-size%3A%200.9rem%3B%20color%3A%20var%28--text-color%29%3B%20border-top%3A%201px%20solid%20var%28--card-border%29%3B%20display%3A%20flex%3B%20align-items%3A%20center%3B%20justify-content%3A%20space-between%3B%20%7D%0A%20%20%20%20.now-playing-left%20%7B%20display%3A%20flex%3B%20align-items%3A%20center%3B%20gap%3A%2010px%3B%20overflow%3A%20hidden%3B%20white-space%3A%20nowrap%3B%20text-overflow%3A%20ellipsis%3B%20%7D%0A%0A%20%20%20%20.settings-btn%20%7B%20background%3A%20var%28--border-color%29%3B%20color%3A%20var%28--text-color%29%3B%20border%3A%201px%20solid%20var%28--border-color%29%3B%20padding%3A%206px%2012px%3B%20border-radius%3A%206px%3B%20cursor%3A%20pointer%3B%20display%3A%20flex%3B%20align-items%3A%20center%3B%20gap%3A%206px%3B%20font-size%3A%200.85rem%3B%20%7D%0A%20%20%20%20.settings-btn%3Ahover%20%7B%20background%3A%20%23ff3b30%3B%20border-color%3A%20%23ff3b30%3B%20color%3A%20%23fff%3B%20%7D%0A%0A%20%20%20%20.container%20%7B%20max-width%3A%20900px%3B%20margin%3A%200%20auto%3B%20padding%3A%200%2015px%3B%20%7D%0A%0A%20%20%20%20.main-search-wrapper%20%7B%20margin-top%3A%2020px%3B%20position%3A%20relative%3B%20width%3A%20100%25%3B%20%7D%0A%20%20%20%20.main-search-wrapper%20input%20%7B%20width%3A%20100%25%3B%20padding%3A%2012px%2015px%2012px%2042px%3B%20background%3A%20var%28--card-bg%29%3B%20border%3A%201px%20solid%20var%28--card-border%29%3B%20border-radius%3A%2010px%3B%20color%3A%20var%28--text-color%29%3B%20font-size%3A%200.95rem%3B%20outline%3A%20none%3B%20%7D%0A%20%20%20%20.main-search-wrapper%20input%3Afocus%20%7B%20border-color%3A%20%23ff3b30%3B%20%7D%0A%20%20%20%20.main-search-wrapper%20i%20%7B%20position%3A%20absolute%3B%20left%3A%2015px%3B%20top%3A%2050%25%3B%20transform%3A%20translateY%28-50%25%29%3B%20color%3A%20var%28--text-muted%29%3B%20%7D%0A%0A%20%20%20%20.section-title%20%7B%20margin%3A%2020px%200%2012px%3B%20font-size%3A%201.1rem%3B%20color%3A%20var%28--text-color%29%3B%20%7D%0A%0A%20%20%20%20.category-grid%20%7B%20display%3A%20grid%3B%20grid-template-columns%3A%20repeat%28auto-fill%2C%20minmax%28130px%2C%201fr%29%29%3B%20gap%3A%2015px%3B%20margin-bottom%3A%2025px%3B%20%7D%0A%20%20%20%20.category-card%20%7B%20background%3A%20var%28--card-bg%29%3B%20border%3A%201px%20solid%20var%28--card-border%29%3B%20border-radius%3A%2012px%3B%20padding%3A%2015px%2010px%3B%20text-align%3A%20center%3B%20cursor%3A%20pointer%3B%20%7D%0A%20%20%20%20.category-card%3Ahover%20%7B%20border-color%3A%20%23ff3b30%3B%20%7D%0A%20%20%20%20.category-icon%20%7B%20width%3A%2045px%3B%20height%3A%2045px%3B%20background%3A%20rgba%28255%2C%2059%2C%2048%2C%200.1%29%3B%20border-radius%3A%2050%25%3B%20display%3A%20flex%3B%20align-items%3A%20center%3B%20justify-content%3A%20center%3B%20margin%3A%200%20auto%2010px%3B%20color%3A%20%23ff3b30%3B%20font-size%3A%201.2rem%3B%20%7D%0A%20%20%20%20.category-name%20%7B%20font-size%3A%200.85rem%3B%20font-weight%3A%20600%3B%20%7D%0A%20%20%20%20.channel-count-badge%20%7B%20font-size%3A%200.75rem%3B%20color%3A%20%23ff3b30%3B%20font-weight%3A%20bold%3B%20margin-left%3A%202px%3B%20%7D%0A%0A%20%20%20%20.group-filters-container%20%7B%20display%3A%20flex%3B%20gap%3A%208px%3B%20overflow-x%3A%20auto%3B%20padding-bottom%3A%208px%3B%20margin-bottom%3A%2015px%3B%20white-space%3A%20nowrap%3B%20%7D%0A%20%20%20%20.group-chip%20%7B%20background%3A%20var%28--card-bg%29%3B%20border%3A%201px%20solid%20var%28--card-border%29%3B%20color%3A%20var%28--text-muted%29%3B%20padding%3A%206px%2014px%3B%20border-radius%3A%2020px%3B%20font-size%3A%200.85rem%3B%20cursor%3A%20pointer%3B%20%7D%0A%20%20%20%20.group-chip%3Ahover%2C%20.group-chip.active%20%7B%20background%3A%20%23ff3b30%3B%20border-color%3A%20%23ff3b30%3B%20color%3A%20%23fff%3B%20%7D%0A%0A%20%20%20%20.channels-grid%20%7B%20display%3A%20grid%3B%20grid-template-columns%3A%20repeat%28auto-fill%2C%20minmax%28120px%2C%201fr%29%29%3B%20gap%3A%2012px%3B%20%7D%0A%20%20%20%20.channel-card%20%7B%20background%3A%20var%28--card-bg%29%3B%20border-radius%3A%2010px%3B%20padding%3A%2010px%3B%20text-align%3A%20center%3B%20cursor%3A%20pointer%3B%20border%3A%201px%20solid%20var%28--card-border%29%3B%20display%3A%20flex%3B%20flex-direction%3A%20column%3B%20align-items%3A%20center%3B%20gap%3A%208px%3B%20%7D%0A%20%20%20%20.channel-card%3Ahover%20%7B%20border-color%3A%20%23ff3b30%3B%20transform%3A%20translateY%28-2px%29%3B%20%7D%0A%20%20%20%20.channel-logo%20%7B%20width%3A%2045px%3B%20height%3A%2045px%3B%20object-fit%3A%20contain%3B%20background%3A%20var%28--bg-color%29%3B%20border-radius%3A%208px%3B%20padding%3A%204px%3B%20%7D%0A%20%20%20%20.channel-title%20%7B%20font-size%3A%200.8rem%3B%20font-weight%3A%20500%3B%20display%3A%20-webkit-box%3B%20-webkit-line-clamp%3A%202%3B%20-webkit-box-orient%3A%20vertical%3B%20overflow%3A%20hidden%3B%20%7D%0A%0A%20%20%20%20/*%20Custom%20Settings%20Modal%20*/%0A%20%20%20%20.settings-modal%20%7B%20position%3A%20fixed%3B%20top%3A%2050%25%3B%20left%3A%2050%25%3B%20transform%3A%20translate%28-50%25%2C%20-50%25%29%3B%20width%3A%2090%25%3B%20max-width%3A%20420px%3B%20background%3A%20var%28--modal-bg%29%3B%20border-radius%3A%2012px%3B%20z-index%3A%20300%3B%20display%3A%20none%3B%20overflow%3A%20hidden%3B%20box-shadow%3A%200%2010px%2030px%20rgba%280%2C0%2C0%2C0.5%29%3B%20border%3A%201px%20solid%20var%28--card-border%29%3B%20%7D%0A%20%20%20%20.settings-modal.active%20%7B%20display%3A%20block%3B%20animation%3A%20modalPop%200.25s%20ease-out%3B%20%7D%0A%20%20%20%20@keyframes%20modalPop%20%7B%200%25%20%7B%20transform%3A%20translate%28-50%25%2C%20-45%25%29%20scale%280.95%29%3B%20opacity%3A%200%3B%20%7D%20100%25%20%7B%20transform%3A%20translate%28-50%25%2C%20-50%25%29%20scale%281%29%3B%20opacity%3A%201%3B%20%7D%20%7D%0A%0A%20%20%20%20.settings-header%20%7B%20display%3A%20flex%3B%20justify-content%3A%20space-between%3B%20align-items%3A%20center%3B%20padding%3A%2018px%2020px%2010px%3B%20%7D%0A%20%20%20%20.settings-header%20h3%20%7B%20font-size%3A%201.15rem%3B%20font-weight%3A%20600%3B%20color%3A%20var%28--text-color%29%3B%20%7D%0A%20%20%20%20.settings-tabs%20%7B%20display%3A%20flex%3B%20border-bottom%3A%201px%20solid%20var%28--border-color%29%3B%20padding%3A%200%2020px%3B%20gap%3A%2020px%3B%20%7D%0A%20%20%20%20.tab-btn%20%7B%20background%3A%20none%3B%20border%3A%20none%3B%20color%3A%20var%28--text-muted%29%3B%20font-weight%3A%20700%3B%20font-size%3A%200.85rem%3B%20padding-bottom%3A%2010px%3B%20cursor%3A%20pointer%3B%20position%3A%20relative%3B%20%7D%0A%20%20%20%20.tab-btn.active%20%7B%20color%3A%20var%28--text-color%29%3B%20%7D%0A%20%20%20%20.tab-btn.active%3A%3Aafter%20%7B%20content%3A%20%27%27%3B%20position%3A%20absolute%3B%20bottom%3A%20-1px%3B%20left%3A%200%3B%20width%3A%20100%25%3B%20height%3A%203px%3B%20background-color%3A%20%23ff3b30%3B%20border-radius%3A%202px%3B%20%7D%0A%20%20%20%20%0A%20%20%20%20.settings-content%20%7B%20padding%3A%2010px%2020px%3B%20max-height%3A%20260px%3B%20overflow-y%3A%20auto%3B%20%7D%0A%20%20%20%20.setting-option%20%7B%20display%3A%20flex%3B%20justify-content%3A%20space-between%3B%20align-items%3A%20center%3B%20padding%3A%2012px%200%3B%20cursor%3A%20pointer%3B%20color%3A%20var%28--text-color%29%3B%20font-size%3A%200.9rem%3B%20border-bottom%3A%201px%20solid%20var%28--border-color%29%3B%20%7D%0A%20%20%20%20.setting-option%3Alast-child%20%7B%20border-bottom%3A%20none%3B%20%7D%0A%20%20%20%20.custom-radio%20%7B%20width%3A%2018px%3B%20height%3A%2018px%3B%20border%3A%202px%20solid%20var%28--text-muted%29%3B%20border-radius%3A%2050%25%3B%20display%3A%20flex%3B%20align-items%3A%20center%3B%20justify-content%3A%20center%3B%20flex-shrink%3A%200%3B%20%7D%0A%20%20%20%20.setting-option.selected%20.custom-radio%20%7B%20border-color%3A%20%23ff3b30%3B%20%7D%0A%20%20%20%20.setting-option.selected%20.custom-radio%3A%3Aafter%20%7B%20content%3A%20%27%27%3B%20width%3A%208px%3B%20height%3A%208px%3B%20background-color%3A%20%23ff3b30%3B%20border-radius%3A%2050%25%3B%20%7D%0A%0A%20%20%20%20.settings-footer%20%7B%20display%3A%20flex%3B%20justify-content%3A%20flex-end%3B%20gap%3A%2020px%3B%20padding%3A%2015px%2020px%3B%20border-top%3A%201px%20solid%20var%28--border-color%29%3B%20%7D%0A%20%20%20%20.footer-btn%20%7B%20background%3A%20none%3B%20border%3A%20none%3B%20font-weight%3A%20700%3B%20font-size%3A%200.9rem%3B%20cursor%3A%20pointer%3B%20%7D%0A%20%20%20%20.btn-cancel%20%7B%20color%3A%20var%28--text-muted%29%3B%20%7D%20.btn-apply%20%7B%20color%3A%20%23ff3b30%3B%20%7D%0A%0A%20%20%20%20.overlay%20%7B%20position%3A%20fixed%3B%20top%3A%200%3B%20left%3A%200%3B%20width%3A%20100%25%3B%20height%3A%20100%25%3B%20background%3A%20rgba%280%2C0%2C0%2C0.7%29%3B%20display%3A%20none%3B%20z-index%3A%20150%3B%20%7D%0A%20%20%20%20.overlay.active%20%7B%20display%3A%20block%3B%20%7D%0A%20%20%3C/style%3E%0A%3C/head%3E%0A%3Cbody%3E%0A%0A%20%20%3C%21--%20App%20Intro%20/%20Splash%20Screen%20Loader%20--%3E%0A%20%20%3Cdiv%20id%3D%22page-loader%22%3E%0A%20%20%20%20%3Cdiv%20class%3D%22splash-logo-wrapper%22%3E%0A%20%20%20%20%20%20%3Ci%20class%3D%22fa-solid%20fa-tv%22%3E%3C/i%3E%0A%20%20%20%20%20%20%3Ch2%3ELive%20TV%20Pro%3C/h2%3E%0A%20%20%20%20%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22loader-ring%22%3E%3C/div%3E%0A%20%20%3C/div%3E%0A%0A%20%20%3C%21--%20Modal%20Overlay%20--%3E%0A%20%20%3Cdiv%20class%3D%22overlay%22%20id%3D%22overlay%22%20onclick%3D%22closeAllModals%28%29%22%3E%3C/div%3E%0A%0A%20%20%3C%21--%20Header%20--%3E%0A%20%20%3Cheader%3E%0A%20%20%20%20%3Cdiv%20class%3D%22logo%22%3E%3Ci%20class%3D%22fa-solid%20fa-tv%22%3E%3C/i%3E%20Live%20TV%20Pro%3C/div%3E%0A%20%20%20%20%3C%21--%20Theme%20Toggle%20Switch%20--%3E%0A%20%20%20%20%3Cbutton%20class%3D%22theme-toggle-btn%22%20id%3D%22theme-btn%22%20onclick%3D%22toggleTheme%28%29%22%20title%3D%22Toggle%20Dark/Light%20Mode%22%3E%0A%20%20%20%20%20%20%3Ci%20class%3D%22fa-solid%20fa-moon%22%20id%3D%22theme-icon%22%3E%3C/i%3E%0A%20%20%20%20%3C/button%3E%0A%20%20%3C/header%3E%0A%0A%20%20%3C%21--%20Sticky%20Player%20--%3E%0A%20%20%3Cdiv%20class%3D%22sticky-player-area%22%3E%0A%20%20%20%20%3Cdiv%20class%3D%22player-wrapper%22%3E%0A%20%20%20%20%20%20%3Cvideo%20id%3D%22video-player%22%20controls%20autoplay%20crossorigin%20playsinline%3E%3C/video%3E%0A%20%20%20%20%20%20%3Cdiv%20class%3D%22now-playing%22%3E%0A%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22now-playing-left%22%3E%0A%20%20%20%20%20%20%20%20%20%20%3Ci%20class%3D%22fa-solid%20fa-circle-play%22%20style%3D%22color%3A%20%23ff3b30%3B%22%3E%3C/i%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cspan%20id%3D%22now-playing-title%22%3ESelect%20a%20channel%20to%20play...%3C/span%3E%0A%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%3Cbutton%20class%3D%22settings-btn%22%20onclick%3D%22openSettingsModal%28%29%22%3E%3Ci%20class%3D%22fa-solid%20fa-gear%22%3E%3C/i%3E%20Settings%3C/button%3E%0A%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%3C/div%3E%0A%20%20%3C/div%3E%0A%0A%20%20%3C%21--%20Main%20Container%20--%3E%0A%20%20%3Cdiv%20class%3D%22container%22%3E%0A%20%20%20%20%3Cdiv%20class%3D%22main-search-wrapper%22%3E%0A%20%20%20%20%20%20%3Ci%20class%3D%22fa-solid%20fa-magnifying-glass%22%3E%3C/i%3E%0A%20%20%20%20%20%20%3Cinput%20type%3D%22text%22%20id%3D%22channel-search-input%22%20placeholder%3D%22Search%20your%20favorite%20channels...%22%20onkeyup%3D%22filterChannels%28%29%22%3E%0A%20%20%20%20%3C/div%3E%0A%0A%20%20%20%20%3Cdiv%20class%3D%22section-title%22%3ECategories%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22category-grid%22%20id%3D%22category-grid%22%3E%3C/div%3E%0A%0A%20%20%20%20%3Cdiv%20class%3D%22section-title%22%20id%3D%22channel-section-title%22%3EChannels%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22group-filters-container%22%20id%3D%22group-filters-container%22%20style%3D%22display%3A%20none%3B%22%3E%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22channels-grid%22%20id%3D%22channels-container%22%3E%0A%20%20%20%20%20%20%3Cp%20style%3D%22color%3A%20var%28--text-muted%29%3B%20grid-column%3A%201/-1%3B%22%3E%u0995%u09CD%u09AF%u09BE%u099F%u09BE%u0997%u09B0%u09BF%20%u09B8%u09BF%u09B2%u09C7%u0995%u09CD%u099F%20%u0995%u09B0%u09C1%u09A8...%3C/p%3E%0A%20%20%20%20%3C/div%3E%0A%20%20%3C/div%3E%0A%0A%20%20%3C%21--%20Settings%20Modal%20--%3E%0A%20%20%3Cdiv%20class%3D%22settings-modal%22%20id%3D%22settings-modal%22%3E%0A%20%20%20%20%3Cdiv%20class%3D%22settings-header%22%3E%0A%20%20%20%20%20%20%3Ch3%3EVideo%20Settings%3C/h3%3E%0A%20%20%20%20%20%20%3Ci%20class%3D%22fa-solid%20fa-xmark%22%20style%3D%22cursor%3Apointer%3B%22%20onclick%3D%22closeAllModals%28%29%22%3E%3C/i%3E%0A%20%20%20%20%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22settings-tabs%22%3E%0A%20%20%20%20%20%20%3Cbutton%20class%3D%22tab-btn%20active%22%20id%3D%22tab-video-btn%22%20onclick%3D%22switchTab%28%27video%27%29%22%3EVideo%3C/button%3E%0A%20%20%20%20%20%20%3Cbutton%20class%3D%22tab-btn%22%20id%3D%22tab-audio-btn%22%20onclick%3D%22switchTab%28%27audio%27%29%22%3EAudio%3C/button%3E%0A%20%20%20%20%20%20%3Cbutton%20class%3D%22tab-btn%22%20id%3D%22tab-text-btn%22%20onclick%3D%22switchTab%28%27text%27%29%22%3EText%3C/button%3E%0A%20%20%20%20%20%20%3Cbutton%20class%3D%22tab-btn%22%20id%3D%22tab-speed-btn%22%20onclick%3D%22switchTab%28%27speed%27%29%22%3ESpeed%3C/button%3E%0A%20%20%20%20%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22settings-content%22%20id%3D%22settings-options%22%3E%3C/div%3E%0A%20%20%20%20%3Cdiv%20class%3D%22settings-footer%22%3E%0A%20%20%20%20%20%20%3Cbutton%20class%3D%22footer-btn%20btn-cancel%22%20onclick%3D%22closeAllModals%28%29%22%3ECancel%3C/button%3E%0A%20%20%20%20%20%20%3Cbutton%20class%3D%22footer-btn%20btn-apply%22%20onclick%3D%22applySettings%28%29%22%3EApply%3C/button%3E%0A%20%20%20%20%3C/div%3E%0A%20%20%3C/div%3E%0A%0A%20%20%3Cscript%3E%0A%20%20%20%20const%20video%20%3D%20document.getElementById%28%27video-player%27%29%3B%0A%20%20%20%20const%20nowPlayingTitle%20%3D%20document.getElementById%28%27now-playing-title%27%29%3B%0A%20%20%20%20const%20channelsContainer%20%3D%20document.getElementById%28%27channels-container%27%29%3B%0A%20%20%20%20const%20channelSectionTitle%20%3D%20document.getElementById%28%27channel-section-title%27%29%3B%0A%20%20%20%20const%20categoryGrid%20%3D%20document.getElementById%28%27category-grid%27%29%3B%0A%20%20%20%20const%20groupFiltersContainer%20%3D%20document.getElementById%28%27group-filters-container%27%29%3B%0A%20%20%20%20const%20pageLoader%20%3D%20document.getElementById%28%27page-loader%27%29%3B%0A%0A%20%20%20%20let%20hls%20%3D%20new%20Hls%28%29%3B%0A%20%20%20%20let%20plyrPlayer%20%3D%20null%3B%0A%0A%20%20%20%20let%20currentTab%20%3D%20%27video%27%3B%0A%20%20%20%20let%20availableLevels%20%3D%20%5B%5D%3B%0A%20%20%20%20let%20tempSelectedLevel%20%3D%20-1%3B%0A%20%20%20%20let%20tempSelectedAudio%20%3D%20%27auto%27%3B%0A%20%20%20%20let%20tempSelectedText%20%3D%20%27auto%27%3B%0A%20%20%20%20let%20tempSelectedSpeed%20%3D%201%3B%0A%0A%20%20%20%20let%20currentCategoryName%20%3D%20%27%27%3B%0A%20%20%20%20let%20currentLoadedChannels%20%3D%20%5B%5D%3B%0A%20%20%20%20let%20categoryCounts%20%3D%20%7B%7D%3B%0A%0A%20%20%20%20const%20defaultCategories%20%3D%20%5B%0A%20%20%20%20%20%20%7B%20id%3A%20%27cat_1%27%2C%20type%3A%20%27link%27%2C%20name%3A%20%27Bangladesh%27%2C%20icon%3A%20%27fa-tv%27%2C%20data%3A%20%27https%3A//iptv-org.github.io/iptv/countries/bd.m3u%27%20%7D%2C%0A%20%20%20%20%20%20%7B%20id%3A%20%27cat_2%27%2C%20type%3A%20%27link%27%2C%20name%3A%20%27Sports%27%2C%20icon%3A%20%27fa-football%27%2C%20data%3A%20%27https%3A//iptv-org.github.io/iptv/categories/sports.m3u%27%20%7D%0A%20%20%20%20%5D%3B%0A%0A%20%20%20%20function%20getCategories%28%29%20%7B%0A%20%20%20%20%20%20const%20saved%20%3D%20localStorage.getItem%28%27live_tv_categories%27%29%3B%0A%20%20%20%20%20%20return%20saved%20%3F%20JSON.parse%28saved%29%20%3A%20defaultCategories%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20document.addEventListener%28%27DOMContentLoaded%27%2C%20%28%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20plyrPlayer%20%3D%20new%20Plyr%28video%2C%20%7B%20controls%3A%20%5B%27play-large%27%2C%20%27play%27%2C%20%27progress%27%2C%20%27current-time%27%2C%20%27mute%27%2C%20%27volume%27%2C%20%27fullscreen%27%5D%2C%20autoplay%3A%20true%20%7D%29%3B%0A%20%20%20%20%20%20initTheme%28%29%3B%0A%20%20%20%20%20%20loadCategoryCounts%28%29%3B%0A%0A%20%20%20%20%20%20//%20Hide%20Splash%20Loader%20smoothly%20after%20initialization%0A%20%20%20%20%20%20setTimeout%28%28%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20pageLoader.style.opacity%20%3D%20%270%27%3B%0A%20%20%20%20%20%20%20%20pageLoader.style.visibility%20%3D%20%27hidden%27%3B%0A%20%20%20%20%20%20%7D%2C%201200%29%3B%0A%20%20%20%20%7D%29%3B%0A%0A%20%20%20%20/*%20Theme%20Toggle%20Logic%20*/%0A%20%20%20%20function%20initTheme%28%29%20%7B%0A%20%20%20%20%20%20const%20savedTheme%20%3D%20localStorage.getItem%28%27app_theme%27%29%20%7C%7C%20%27dark%27%3B%0A%20%20%20%20%20%20document.documentElement.setAttribute%28%27data-theme%27%2C%20savedTheme%29%3B%0A%20%20%20%20%20%20updateThemeIcon%28savedTheme%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20toggleTheme%28%29%20%7B%0A%20%20%20%20%20%20const%20currentTheme%20%3D%20document.documentElement.getAttribute%28%27data-theme%27%29%20%7C%7C%20%27dark%27%3B%0A%20%20%20%20%20%20const%20newTheme%20%3D%20currentTheme%20%3D%3D%3D%20%27dark%27%20%3F%20%27light%27%20%3A%20%27dark%27%3B%0A%20%20%20%20%20%20document.documentElement.setAttribute%28%27data-theme%27%2C%20newTheme%29%3B%0A%20%20%20%20%20%20localStorage.setItem%28%27app_theme%27%2C%20newTheme%29%3B%0A%20%20%20%20%20%20updateThemeIcon%28newTheme%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20updateThemeIcon%28theme%29%20%7B%0A%20%20%20%20%20%20const%20icon%20%3D%20document.getElementById%28%27theme-icon%27%29%3B%0A%20%20%20%20%20%20if%20%28theme%20%3D%3D%3D%20%27light%27%29%20%7B%0A%20%20%20%20%20%20%20%20icon.className%20%3D%20%27fa-solid%20fa-sun%27%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20icon.className%20%3D%20%27fa-solid%20fa-moon%27%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%0A%20%20%20%20/*%20Modal%20Controls%20*/%0A%20%20%20%20function%20openSettingsModal%28%29%20%7B%0A%20%20%20%20%20%20document.getElementById%28%27settings-modal%27%29.classList.add%28%27active%27%29%3B%0A%20%20%20%20%20%20document.getElementById%28%27overlay%27%29.classList.add%28%27active%27%29%3B%0A%20%20%20%20%20%20switchTab%28currentTab%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20closeAllModals%28%29%20%7B%0A%20%20%20%20%20%20document.getElementById%28%27settings-modal%27%29.classList.remove%28%27active%27%29%3B%0A%20%20%20%20%20%20document.getElementById%28%27overlay%27%29.classList.remove%28%27active%27%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20playStream%28url%2C%20title%29%20%7B%0A%20%20%20%20%20%20nowPlayingTitle.innerText%20%3D%20title%3B%0A%20%20%20%20%20%20tempSelectedLevel%20%3D%20-1%3B%20%0A%20%20%20%20%20%20tempSelectedAudio%20%3D%20%27auto%27%3B%20%0A%20%20%20%20%20%20tempSelectedText%20%3D%20%27auto%27%3B%20%0A%20%20%20%20%20%20tempSelectedSpeed%20%3D%201%3B%0A%0A%20%20%20%20%20%20if%20%28Hls.isSupported%28%29%29%20%7B%0A%20%20%20%20%20%20%20%20hls.destroy%28%29%3B%0A%20%20%20%20%20%20%20%20hls%20%3D%20new%20Hls%28%29%3B%0A%20%20%20%20%20%20%20%20hls.loadSource%28url%29%3B%0A%20%20%20%20%20%20%20%20hls.attachMedia%28video%29%3B%0A%20%20%20%20%20%20%20%20hls.on%28Hls.Events.MANIFEST_PARSED%2C%20%28%29%20%3D%3E%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20availableLevels%20%3D%20hls.levels%3B%20%0A%20%20%20%20%20%20%20%20%20%20video.play%28%29%3B%20%0A%20%20%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%20%20%7D%20else%20if%20%28video.canPlayType%28%27application/vnd.apple.mpegurl%27%29%29%20%7B%0A%20%20%20%20%20%20%20%20video.src%20%3D%20url%3B%0A%20%20%20%20%20%20%20%20video.play%28%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20switchTab%28tab%29%20%7B%0A%20%20%20%20%20%20currentTab%20%3D%20tab%3B%0A%20%20%20%20%20%20document.querySelectorAll%28%27.tab-btn%27%29.forEach%28btn%20%3D%3E%20btn.classList.remove%28%27active%27%29%29%3B%0A%20%20%20%20%20%20document.getElementById%28%60tab-%24%7Btab%7D-btn%60%29.classList.add%28%27active%27%29%3B%0A%20%20%20%20%20%20renderSettingsOptions%28%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20renderSettingsOptions%28%29%20%7B%0A%20%20%20%20%20%20const%20container%20%3D%20document.getElementById%28%27settings-options%27%29%3B%0A%20%20%20%20%20%20container.innerHTML%20%3D%20%27%27%3B%0A%0A%20%20%20%20%20%20if%20%28currentTab%20%3D%3D%3D%20%27video%27%29%20%7B%0A%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedLevel%20%3D%3D%3D%20-1%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedLevel%3D-1%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3EAuto%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%60%3B%0A%0A%20%20%20%20%20%20%20%20if%20%28availableLevels%20%26%26%20availableLevels.length%20%3E%200%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20availableLevels.forEach%28%28level%2C%20index%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20w%20%3D%20level.width%20%7C%7C%201280%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20h%20%3D%20level.height%20%7C%7C%20720%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20mbps%20%3D%20level.bitrate%20%3F%20%28level.bitrate%20/%201000000%29.toFixed%282%29%20+%20%27%20Mbps%27%20%3A%20%27%27%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20label%20%3D%20%60%24%7Bw%7D%20%D7%20%24%7Bh%7D%20%24%7Bmbps%20%3F%20%27%u2022%20%27%20+%20mbps%20%3A%20%27%27%7D%60%3B%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedLevel%20%3D%3D%3D%20index%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedLevel%3D%24%7Bindex%7D%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3E%24%7Blabel%7D%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%60%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%20%0A%20%20%20%20%20%20else%20if%20%28currentTab%20%3D%3D%3D%20%27audio%27%29%20%7B%0A%20%20%20%20%20%20%20%20const%20audioTracks%20%3D%20hls%20%3F%20%28hls.audioTracks%20%7C%7C%20%5B%5D%29%20%3A%20%5B%5D%3B%0A%0A%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedAudio%20%3D%3D%3D%20%27auto%27%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedAudio%3D%27auto%27%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3EAuto%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedAudio%20%3D%3D%3D%20%27none%27%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedAudio%3D%27none%27%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3ENone%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%60%3B%0A%0A%20%20%20%20%20%20%20%20if%20%28audioTracks.length%20%3E%200%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20audioTracks.forEach%28%28track%2C%20index%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20lang%20%3D%20track.name%20%7C%7C%20track.lang%20%7C%7C%20%27Audio%20Track%20%27%20+%20%28index%20+%201%29%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20channelInfo%20%3D%20track.channels%20%3F%20%28track.channels%20%3D%3D%3D%202%20%3F%20%27Stereo%27%20%3A%20track.channels%20+%20%27%20Channels%27%29%20%3A%20%27Stereo%27%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20bitrate%20%3D%20track.bitrate%20%3F%20Math.round%28track.bitrate%20/%201000%29%20+%20%27%20kbps%27%20%3A%20%27128%20kbps%27%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20label%20%3D%20%60%24%7Blang%7D%20%u2022%20%24%7BchannelInfo%7D%20%24%7Bbitrate%7D%60%3B%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedAudio%20%3D%3D%3D%20index%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedAudio%3D%24%7Bindex%7D%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3E%24%7Blabel%7D%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%60%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%20%0A%20%20%20%20%20%20else%20if%20%28currentTab%20%3D%3D%3D%20%27text%27%29%20%7B%0A%20%20%20%20%20%20%20%20const%20subtitleTracks%20%3D%20hls%20%3F%20%28hls.subtitleTracks%20%7C%7C%20%5B%5D%29%20%3A%20%5B%5D%3B%0A%0A%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedText%20%3D%3D%3D%20%27auto%27%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedText%3D%27auto%27%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3EAuto%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedText%20%3D%3D%3D%20%27none%27%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedText%3D%27none%27%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3ENone%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%60%3B%0A%0A%20%20%20%20%20%20%20%20if%20%28subtitleTracks.length%20%3E%200%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20subtitleTracks.forEach%28%28track%2C%20index%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20langName%20%3D%20track.name%20%7C%7C%20track.lang%20%7C%7C%20%27Subtitle%20%27%20+%20%28index%20+%201%29%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20label%20%3D%20%60%24%7BlangName%7D%20%28CC%29%60%3B%0A%0A%20%20%20%20%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedText%20%3D%3D%3D%20index%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedText%3D%24%7Bindex%7D%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3E%24%7Blabel%7D%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%60%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20else%20if%20%28currentTab%20%3D%3D%3D%20%27speed%27%29%20%7B%0A%20%20%20%20%20%20%20%20%5B0.5%2C%200.75%2C%201%2C%201.25%2C%201.5%2C%202%5D.forEach%28sp%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20container.innerHTML%20+%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22setting-option%20%24%7BtempSelectedSpeed%20%3D%3D%3D%20sp%20%3F%20%27selected%27%20%3A%20%27%27%7D%22%20onclick%3D%22tempSelectedSpeed%3D%24%7Bsp%7D%3BrenderSettingsOptions%28%29%3B%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cspan%3E%24%7Bsp%20%3D%3D%3D%201%20%3F%20%27Normal%27%20%3A%20sp%20+%20%27x%27%7D%3C/span%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22custom-radio%22%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%60%3B%0A%20%20%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20applySettings%28%29%20%7B%0A%20%20%20%20%20%20if%20%28hls%29%20%7B%0A%20%20%20%20%20%20%20%20hls.currentLevel%20%3D%20tempSelectedLevel%3B%0A%0A%20%20%20%20%20%20%20%20if%20%28tempSelectedAudio%20%3D%3D%3D%20%27auto%27%29%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20hls.audioTrack%20%3D%20-1%3B%20video.muted%20%3D%20false%3B%20%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20%28tempSelectedAudio%20%3D%3D%3D%20%27none%27%29%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20video.muted%20%3D%20true%3B%20%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20%28typeof%20tempSelectedAudio%20%3D%3D%3D%20%27number%27%29%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20video.muted%20%3D%20false%3B%20hls.audioTrack%20%3D%20tempSelectedAudio%3B%20%0A%20%20%20%20%20%20%20%20%7D%0A%0A%20%20%20%20%20%20%20%20if%20%28tempSelectedText%20%3D%3D%3D%20%27auto%27%29%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20hls.subtitleTrack%20%3D%20-1%3B%20hls.subtitleDisplay%20%3D%20true%3B%20%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20%28tempSelectedText%20%3D%3D%3D%20%27none%27%29%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20hls.subtitleTrack%20%3D%20-1%3B%20hls.subtitleDisplay%20%3D%20false%3B%20%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20%28typeof%20tempSelectedText%20%3D%3D%3D%20%27number%27%29%20%7B%20%0A%20%20%20%20%20%20%20%20%20%20hls.subtitleTrack%20%3D%20tempSelectedText%3B%20hls.subtitleDisplay%20%3D%20true%3B%20%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%0A%20%20%20%20%20%20video.playbackRate%20%3D%20tempSelectedSpeed%3B%0A%20%20%20%20%20%20closeAllModals%28%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20parseM3U%28content%29%20%7B%0A%20%20%20%20%20%20const%20lines%20%3D%20content.split%28%27%5Cn%27%29%3B%0A%20%20%20%20%20%20const%20channels%20%3D%20%5B%5D%3B%0A%20%20%20%20%20%20let%20currentChannel%20%3D%20%7B%7D%3B%0A%0A%20%20%20%20%20%20for%20%28let%20i%20%3D%200%3B%20i%20%3C%20lines.length%3B%20i++%29%20%7B%0A%20%20%20%20%20%20%20%20let%20line%20%3D%20lines%5Bi%5D.trim%28%29%3B%0A%20%20%20%20%20%20%20%20if%20%28line.startsWith%28%27%23EXTINF%3A%27%29%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20const%20logoMatch%20%3D%20line.match%28/tvg-logo%3D%22%28%5B%5E%22%5D+%29%22/%29%3B%0A%20%20%20%20%20%20%20%20%20%20currentChannel.logo%20%3D%20logoMatch%20%3F%20logoMatch%5B1%5D%20%3A%20%27%27%3B%0A%20%20%20%20%20%20%20%20%20%20const%20groupMatch%20%3D%20line.match%28/group-title%3D%22%28%5B%5E%22%5D+%29%22/%29%3B%0A%20%20%20%20%20%20%20%20%20%20currentChannel.group%20%3D%20groupMatch%20%3F%20groupMatch%5B1%5D%20%3A%20%27General%27%3B%0A%20%20%20%20%20%20%20%20%20%20const%20nameParts%20%3D%20line.split%28%27%2C%27%29%3B%0A%20%20%20%20%20%20%20%20%20%20currentChannel.name%20%3D%20nameParts%5BnameParts.length%20-%201%5D.trim%28%29%20%7C%7C%20%27Unknown%27%3B%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20%28line.length%20%3E%200%20%26%26%20%21line.startsWith%28%27%23%27%29%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20currentChannel.url%20%3D%20line%3B%0A%20%20%20%20%20%20%20%20%20%20channels.push%28currentChannel%29%3B%0A%20%20%20%20%20%20%20%20%20%20currentChannel%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20channels%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20async%20function%20loadCategoryCounts%28%29%20%7B%0A%20%20%20%20%20%20const%20categories%20%3D%20getCategories%28%29%3B%0A%20%20%20%20%20%20renderCategories%28%29%3B%0A%0A%20%20%20%20%20%20for%20%28const%20cat%20of%20categories%29%20%7B%0A%20%20%20%20%20%20%20%20if%20%28cat.type%20%3D%3D%3D%20%27content%27%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20categoryCounts%5Bcat.id%5D%20%3D%20parseM3U%28cat.data%29.length%3B%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20%28cat.type%20%3D%3D%3D%20%27link%27%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20try%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20res%20%3D%20await%20fetch%28cat.data%29%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20const%20text%20%3D%20await%20res.text%28%29%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20categoryCounts%5Bcat.id%5D%20%3D%20parseM3U%28text%29.length%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%20catch%28e%29%20%7B%20categoryCounts%5Bcat.id%5D%20%3D%200%3B%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20updateCategoryCountBadge%28cat.id%2C%20categoryCounts%5Bcat.id%5D%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20updateCategoryCountBadge%28catId%2C%20count%29%20%7B%0A%20%20%20%20%20%20const%20badge%20%3D%20document.getElementById%28%60cat-count-%24%7BcatId%7D%60%29%3B%0A%20%20%20%20%20%20if%20%28badge%20%26%26%20count%20%21%3D%3D%20undefined%29%20badge.innerText%20%3D%20%60%28%24%7Bcount%7D%29%60%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20onCategoryClick%28catId%29%20%7B%0A%20%20%20%20%20%20const%20categories%20%3D%20getCategories%28%29%3B%0A%20%20%20%20%20%20const%20category%20%3D%20categories.find%28c%20%3D%3E%20c.id%20%3D%3D%3D%20catId%29%3B%0A%20%20%20%20%20%20if%28%21category%29%20return%3B%0A%0A%20%20%20%20%20%20currentCategoryName%20%3D%20category.name%3B%0A%20%20%20%20%20%20document.getElementById%28%27channel-search-input%27%29.value%20%3D%20%27%27%3B%0A%20%20%20%20%20%20channelSectionTitle.innerText%20%3D%20%60Channels%20%28%24%7Bcategory.name%7D%29%60%3B%0A%20%20%20%20%20%20channelsContainer.innerHTML%20%3D%20%22%3Cp%20style%3D%27color%3A%20var%28--text-muted%29%3B%27%3E%u09B2%u09CB%u09A1%u09BF%u0982...%3C/p%3E%22%3B%0A%20%20%20%20%20%20groupFiltersContainer.style.display%20%3D%20%27none%27%3B%0A%0A%20%20%20%20%20%20if%20%28category.type%20%3D%3D%3D%20%27link%27%29%20%7B%0A%20%20%20%20%20%20%20%20fetch%28category.data%29%0A%20%20%20%20%20%20%20%20%20%20.then%28res%20%3D%3E%20res.text%28%29%29%0A%20%20%20%20%20%20%20%20%20%20.then%28data%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20currentLoadedChannels%20%3D%20parseM3U%28data%29%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20setupGroupFilters%28currentLoadedChannels%29%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20displayChannels%28currentLoadedChannels%29%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20currentLoadedChannels%20%3D%20parseM3U%28category.data%29%3B%0A%20%20%20%20%20%20%20%20setupGroupFilters%28currentLoadedChannels%29%3B%0A%20%20%20%20%20%20%20%20displayChannels%28currentLoadedChannels%29%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%0A%20%20%20%20/*%20Group%20Filters%20Sorted%20A-Z%20*/%0A%20%20%20%20function%20setupGroupFilters%28channels%29%20%7B%0A%20%20%20%20%20%20groupFiltersContainer.innerHTML%20%3D%20%22%22%3B%0A%20%20%20%20%20%20%0A%20%20%20%20%20%20//%20Extract%20unique%20groups%20and%20sort%20them%20Alphabetically%20A%20to%20Z%0A%20%20%20%20%20%20const%20rawGroups%20%3D%20%5B...new%20Set%28channels.map%28ch%20%3D%3E%20ch.group%29.filter%28Boolean%29%29%5D%3B%0A%20%20%20%20%20%20rawGroups.sort%28%28a%2C%20b%29%20%3D%3E%20a.localeCompare%28b%2C%20undefined%2C%20%7B%20sensitivity%3A%20%27base%27%20%7D%29%29%3B%0A%0A%20%20%20%20%20%20if%20%28rawGroups.length%20%3C%3D%201%29%20return%3B%0A%0A%20%20%20%20%20%20const%20sortedGroups%20%3D%20%5B%27All%27%2C%20...rawGroups%5D%3B%0A%0A%20%20%20%20%20%20groupFiltersContainer.style.display%20%3D%20%27flex%27%3B%0A%20%20%20%20%20%20sortedGroups.forEach%28group%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20const%20chip%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20%20%20%20%20chip.className%20%3D%20%27group-chip%27%3B%0A%20%20%20%20%20%20%20%20chip.innerText%20%3D%20group%3B%0A%20%20%20%20%20%20%20%20chip.onclick%20%3D%20%28e%29%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20document.querySelectorAll%28%27.group-chip%27%29.forEach%28c%20%3D%3E%20c.classList.remove%28%27active%27%29%29%3B%0A%20%20%20%20%20%20%20%20%20%20chip.classList.add%28%27active%27%29%3B%0A%20%20%20%20%20%20%20%20%20%20displayChannels%28group%20%3D%3D%3D%20%27All%27%20%3F%20currentLoadedChannels%20%3A%20currentLoadedChannels.filter%28c%20%3D%3E%20c.group%20%3D%3D%3D%20group%29%29%3B%0A%20%20%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%20%20%20%20if%28group%20%3D%3D%3D%20%27All%27%29%20chip.classList.add%28%27active%27%29%3B%0A%20%20%20%20%20%20%20%20groupFiltersContainer.appendChild%28chip%29%3B%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20displayChannels%28channels%29%20%7B%0A%20%20%20%20%20%20channelsContainer.innerHTML%20%3D%20%22%22%3B%0A%20%20%20%20%20%20channelSectionTitle.innerText%20%3D%20%60Channels%20%28%24%7BcurrentCategoryName%7D%20-%20%24%7Bchannels.length%7D%29%60%3B%0A%0A%20%20%20%20%20%20const%20defaultIcon%20%3D%20%22https%3A//cdn-icons-png.flaticon.com/512/3075/3075908.png%22%3B%0A%20%20%20%20%20%20channels.forEach%28ch%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20const%20card%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20%20%20%20%20card.className%20%3D%20%27channel-card%27%3B%0A%20%20%20%20%20%20%20%20card.onclick%20%3D%20%28%29%20%3D%3E%20playStream%28ch.url%2C%20ch.name%29%3B%0A%20%20%20%20%20%20%20%20card.innerHTML%20%3D%20%60%3Cimg%20class%3D%22channel-logo%22%20src%3D%22%24%7Bch.logo%20%7C%7C%20defaultIcon%7D%22%20onerror%3D%22this.src%3D%27%24%7BdefaultIcon%7D%27%22%3E%3Cdiv%20class%3D%22channel-title%22%3E%24%7Bch.name%7D%3C/div%3E%60%3B%0A%20%20%20%20%20%20%20%20channelsContainer.appendChild%28card%29%3B%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20renderCategories%28%29%20%7B%0A%20%20%20%20%20%20const%20categories%20%3D%20getCategories%28%29%3B%0A%20%20%20%20%20%20categoryGrid.innerHTML%20%3D%20%22%22%3B%0A%0A%20%20%20%20%20%20categories.forEach%28cat%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20const%20countText%20%3D%20categoryCounts%5Bcat.id%5D%20%21%3D%3D%20undefined%20%3F%20%60%28%24%7BcategoryCounts%5Bcat.id%5D%7D%29%60%20%3A%20%27%28...%29%27%3B%0A%20%20%20%20%20%20%20%20const%20card%20%3D%20document.createElement%28%27div%27%29%3B%0A%20%20%20%20%20%20%20%20card.className%20%3D%20%27category-card%27%3B%0A%20%20%20%20%20%20%20%20card.onclick%20%3D%20%28%29%20%3D%3E%20onCategoryClick%28cat.id%29%3B%0A%20%20%20%20%20%20%20%20card.innerHTML%20%3D%20%60%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22category-icon%22%3E%3Ci%20class%3D%22fa-solid%20%24%7Bcat.icon%20%7C%7C%20%27fa-list%27%7D%22%3E%3C/i%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cdiv%20class%3D%22category-name%22%3E%24%7Bcat.name%7D%20%3Cspan%20class%3D%22channel-count-badge%22%20id%3D%22cat-count-%24%7Bcat.id%7D%22%3E%24%7BcountText%7D%3C/span%3E%3C/div%3E%0A%20%20%20%20%20%20%20%20%60%3B%0A%20%20%20%20%20%20%20%20categoryGrid.appendChild%28card%29%3B%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%0A%20%20%20%20function%20filterChannels%28%29%20%7B%0A%20%20%20%20%20%20const%20query%20%3D%20document.getElementById%28%27channel-search-input%27%29.value.toLowerCase%28%29%3B%0A%20%20%20%20%20%20document.querySelectorAll%28%27%23channels-container%20.channel-card%27%29.forEach%28card%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20card.style.display%20%3D%20card.querySelector%28%27.channel-title%27%29.innerText.toLowerCase%28%29.includes%28query%29%20%3F%20%27flex%27%20%3A%20%27none%27%3B%0A%20%20%20%20%20%20%7D%29%3B%0A%20%20%20%20%7D%0A%20%20%3C/script%3E%0A%3C/body%3E%0A%3C/html%3E'))</script>
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live TV Pro Player</title>
+  
+  <!-- HLS.js & Plyr -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+  <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --plyr-color-main: #ff3b30;
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --card-border: #2a2a2a;
+      --text-color: #ffffff;
+      --text-muted: #888888;
+      --header-bg: #1f1f1f;
+      --modal-bg: #1c1c1c;
+      --border-color: #333333;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #f4f5f7;
+      --card-bg: #ffffff;
+      --card-border: #e0e0e0;
+      --text-color: #111111;
+      --text-muted: #666666;
+      --header-bg: #ffffff;
+      --modal-bg: #ffffff;
+      --border-color: #e5e5e5;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
+    body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 30px; }
+
+    /* Premium Fullscreen Splash Screen Loader */
+    #page-loader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: var(--bg-color); z-index: 99999;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    
+    .splash-logo-wrapper {
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+
+    .splash-logo-wrapper i { font-size: 3.5rem; color: #ff3b30; }
+    .splash-logo-wrapper h2 { font-size: 1.6rem; font-weight: 700; color: var(--text-color); letter-spacing: 0.5px; }
+
+    .loader-ring {
+      width: 48px; height: 48px; border: 4px solid rgba(255, 59, 48, 0.15);
+      border-left-color: #ff3b30; border-radius: 50%;
+      animation: spinRing 0.8s linear infinite;
+    }
+
+    @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.05); opacity: 1; } }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: bold; color: #ff3b30; }
+
+    /* Animated Theme Toggle Button */
+    .theme-toggle-btn {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      width: 42px; height: 42px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; cursor: pointer;
+      font-size: 1.1rem; color: #ff3b30; outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.3s ease;
+    }
+    .theme-toggle-btn i { transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+    .theme-toggle-btn:active i { transform: rotate(360deg) scale(1.3); }
+
+    .sticky-player-area { position: sticky; top: 0; z-index: 90; background-color: var(--bg-color); padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+    .player-wrapper { width: 100%; max-width: 900px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+    .now-playing { padding: 12px 15px; background-color: var(--card-bg); font-size: 0.9rem; color: var(--text-color); border-top: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; }
+    .now-playing-left { display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+    .settings-btn { background: var(--border-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+    .settings-btn:hover { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
+
+    .main-search-wrapper { margin-top: 20px; position: relative; width: 100%; }
+    .main-search-wrapper input { width: 100%; padding: 12px 15px 12px 42px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-color); font-size: 0.95rem; outline: none; }
+    .main-search-wrapper input:focus { border-color: #ff3b30; }
+    .main-search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    .section-title { margin: 20px 0 12px; font-size: 1.1rem; color: var(--text-color); }
+
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .category-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer; }
+    .category-card:hover { border-color: #ff3b30; }
+    .category-icon { width: 45px; height: 45px; background: rgba(255, 59, 48, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #ff3b30; font-size: 1.2rem; }
+    .category-name { font-size: 0.85rem; font-weight: 600; }
+    .channel-count-badge { font-size: 0.75rem; color: #ff3b30; font-weight: bold; margin-left: 2px; }
+
+    .group-filters-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 15px; white-space: nowrap; }
+    .group-chip { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; }
+    .group-chip:hover, .group-chip.active { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+
+    .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+    .channel-card { background: var(--card-bg); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; border: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .channel-card:hover { border-color: #ff3b30; transform: translateY(-2px); }
+    .channel-logo { width: 45px; height: 45px; object-fit: contain; background: var(--bg-color); border-radius: 8px; padding: 4px; }
+    .channel-title { font-size: 0.8rem; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Custom Settings Modal */
+    .settings-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 420px; background: var(--modal-bg); border-radius: 12px; z-index: 300; display: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--card-border); }
+    .settings-modal.active { display: block; animation: modalPop 0.25s ease-out; }
+    @keyframes modalPop { 0% { transform: translate(-50%, -45%) scale(0.95); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+    .settings-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px 10px; }
+    .settings-header h3 { font-size: 1.15rem; font-weight: 600; color: var(--text-color); }
+    .settings-tabs { display: flex; border-bottom: 1px solid var(--border-color); padding: 0 20px; gap: 20px; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-weight: 700; font-size: 0.85rem; padding-bottom: 10px; cursor: pointer; position: relative; }
+    .tab-btn.active { color: var(--text-color); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: #ff3b30; border-radius: 2px; }
+    
+    .settings-content { padding: 10px 20px; max-height: 260px; overflow-y: auto; }
+    .setting-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; color: var(--text-color); font-size: 0.9rem; border-bottom: 1px solid var(--border-color); }
+    .setting-option:last-child { border-bottom: none; }
+    .custom-radio { width: 18px; height: 18px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .setting-option.selected .custom-radio { border-color: #ff3b30; }
+    .setting-option.selected .custom-radio::after { content: ''; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; }
+
+    .settings-footer { display: flex; justify-content: flex-end; gap: 20px; padding: 15px 20px; border-top: 1px solid var(--border-color); }
+    .footer-btn { background: none; border: none; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+    .btn-cancel { color: var(--text-muted); } .btn-apply { color: #ff3b30; }
+
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 150; }
+    .overlay.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- App Intro / Splash Screen Loader -->
+  <div id="page-loader">
+    <div class="splash-logo-wrapper">
+      <i class="fa-solid fa-tv"></i>
+      <h2>Live TV Pro</h2>
+    </div>
+    <div class="loader-ring"></div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="logo"><i class="fa-solid fa-tv"></i> Live TV Pro</div>
+    <!-- Theme Toggle Switch -->
+    <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+      <i class="fa-solid fa-moon" id="theme-icon"></i>
+    </button>
+  </header>
+
+  <!-- Sticky Player -->
+  <div class="sticky-player-area">
+    <div class="player-wrapper">
+      <video id="video-player" controls autoplay crossorigin playsinline></video>
+      <div class="now-playing">
+        <div class="now-playing-left">
+          <i class="fa-solid fa-circle-play" style="color: #ff3b30;"></i>
+          <span id="now-playing-title">Select a channel to play...</span>
+        </div>
+        <button class="settings-btn" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container">
+    <div class="main-search-wrapper">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="channel-search-input" placeholder="Search your favorite channels..." onkeyup="filterChannels()">
+    </div>
+
+    <div class="section-title">Categories</div>
+    <div class="category-grid" id="category-grid"></div>
+
+    <div class="section-title" id="channel-section-title">Channels</div>
+    <div class="group-filters-container" id="group-filters-container" style="display: none;"></div>
+    <div class="channels-grid" id="channels-container">
+      <p style="color: var(--text-muted); grid-column: 1/-1;">ক্যাটাগরি সিলেক্ট করুন...</p>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-header">
+      <h3>Video Settings</h3>
+      <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAllModals()"></i>
+    </div>
+    <div class="settings-tabs">
+      <button class="tab-btn active" id="tab-video-btn" onclick="switchTab('video')">Video</button>
+      <button class="tab-btn" id="tab-audio-btn" onclick="switchTab('audio')">Audio</button>
+      <button class="tab-btn" id="tab-text-btn" onclick="switchTab('text')">Text</button>
+      <button class="tab-btn" id="tab-speed-btn" onclick="switchTab('speed')">Speed</button>
+    </div>
+    <div class="settings-content" id="settings-options"></div>
+    <div class="settings-footer">
+      <button class="footer-btn btn-cancel" onclick="closeAllModals()">Cancel</button>
+      <button class="footer-btn btn-apply" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video-player');
+    const nowPlayingTitle = document.getElementById('now-playing-title');
+    const channelsContainer = document.getElementById('channels-container');
+    const channelSectionTitle = document.getElementById('channel-section-title');
+    const categoryGrid = document.getElementById('category-grid');
+    const groupFiltersContainer = document.getElementById('group-filters-container');
+    const pageLoader = document.getElementById('page-loader');
+
+    let hls = new Hls();
+    let plyrPlayer = null;
+
+    let currentTab = 'video';
+    let availableLevels = [];
+    let tempSelectedLevel = -1;
+    let tempSelectedAudio = 'auto';
+    let tempSelectedText = 'auto';
+    let tempSelectedSpeed = 1;
+
+    let currentCategoryName = '';
+    let currentLoadedChannels = [];
+    let categoryCounts = {};
+
+    const defaultCategories = [
+      { id: 'cat_1', type: 'link', name: 'Bangladesh', icon: 'fa-tv', data: 'https://iptv-org.github.io/iptv/countries/bd.m3u' },
+      { id: 'cat_2', type: 'link', name: 'Sports', icon: 'fa-football', data: 'https://iptv-org.github.io/iptv/categories/sports.m3u' }
+    ];
+
+    function getCategories() {
+      const saved = localStorage.getItem('live_tv_categories');
+      return saved ? JSON.parse(saved) : defaultCategories;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      plyrPlayer = new Plyr(video, { controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'], autoplay: true });
+      initTheme();
+      loadCategoryCounts();
+
+      // Hide Splash Loader smoothly after initialization
+      setTimeout(() => {
+        pageLoader.style.opacity = '0';
+        pageLoader.style.visibility = 'hidden';
+      }, 1200);
+    });
+
+    /* Theme Toggle Logic */
+    function initTheme() {
+      const savedTheme = localStorage.getItem('app_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('app_theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('theme-icon');
+      if (theme === 'light') {
+        icon.className = 'fa-solid fa-sun';
+      } else {
+        icon.className = 'fa-solid fa-moon';
+      }
+    }
+
+    /* Modal Controls */
+    function openSettingsModal() {
+      document.getElementById('settings-modal').classList.add('active');
+      document.getElementById('overlay').classList.add('active');
+      switchTab(currentTab);
+    }
+
+    function closeAllModals() {
+      document.getElementById('settings-modal').classList.remove('active');
+      document.getElementById('overlay').classList.remove('active');
+    }
+
+    function playStream(url, title) {
+      nowPlayingTitle.innerText = title;
+      tempSelectedLevel = -1; 
+      tempSelectedAudio = 'auto'; 
+      tempSelectedText = 'auto'; 
+      tempSelectedSpeed = 1;
+
+      if (Hls.isSupported()) {
+        hls.destroy();
+        hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { 
+          availableLevels = hls.levels; 
+          video.play(); 
+        });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = url;
+        video.play();
+      }
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`tab-${tab}-btn`).classList.add('active');
+      renderSettingsOptions();
+    }
+
+    function renderSettingsOptions() {
+      const container = document.getElementById('settings-options');
+      container.innerHTML = '';
+
+      if (currentTab === 'video') {
+        container.innerHTML += `
+          <div class="setting-option ${tempSelectedLevel === -1 ? 'selected' : ''}" onclick="tempSelectedLevel=-1;renderSettingsOptions();">
+            <span>Auto</span>
+            <div class="custom-radio"></div>
+          </div>
+        `;
+
+        if (availableLevels && availableLevels.length > 0) {
+          availableLevels.forEach((level, index) => {
+            const w = level.width || 1280;
+            const h = level.height || 720;
+            const mbps = level.bitrate ? (level.bitrate / 1000000).toFixed(2) + ' Mbps' : '';
+            const label = `${w} × ${h} ${mbps ? '• ' + mbps : ''}`;
+
+            container.innerHTML += `
+              <div class="setting-option ${tempSelectedLevel === index ? 'selected' : ''}" onclick="tempSelectedLevel=${index};renderSettingsOptions();">
+                <span>${label}</span>
+                <div class="custom-radio"></div>
+              </div>
+            `;
+          });
+        }
+      } 
+      else if (currentTab === 'audio') {
+        const audioTracks = hls ? (hls.audioTracks || []) : [];
+
+        container.innerHTML += `
+          <div class="setting-option ${tempSelectedAudio === 'auto' ? 'selected' : ''}" onclick="tempSelectedAudio='auto';renderSettingsOptions();">
+            <span>Auto</span>
+            <div class="custom-radio"></div>
+          </div>
+          <div class="setting-option ${tempSelectedAudio === 'none' ? 'selected' : ''}" onclick="tempSelectedAudio='none';renderSettingsOptions();">
+            <span>None</span>
+            <div class="custom-radio"></div>
+          </div>
+        `;
+
+        if (audioTracks.length > 0) {
+          audioTracks.forEach((track, index) => {
+            const lang = track.name || track.lang || 'Audio Track ' + (index + 1);
+            const channelInfo = track.channels ? (track.channels === 2 ? 'Stereo' : track.channels + ' Channels') : 'Stereo';
+            const bitrate = track.bitrate ? Math.round(track.bitrate / 1000) + ' kbps' : '128 kbps';
+            const label = `${lang} • ${channelInfo} ${bitrate}`;
+
+            container.innerHTML += `
+              <div class="setting-option ${tempSelectedAudio === index ? 'selected' : ''}" onclick="tempSelectedAudio=${index};renderSettingsOptions();">
+                <span>${label}</span>
+                <div class="custom-radio"></div>
+              </div>
+            `;
+          });
+        }
+      } 
+      else if (currentTab === 'text') {
+        const subtitleTracks = hls ? (hls.subtitleTracks || []) : [];
+
+        container.innerHTML += `
+          <div class="setting-option ${tempSelectedText === 'auto' ? 'selected' : ''}" onclick="tempSelectedText='auto';renderSettingsOptions();">
+            <span>Auto</span>
+            <div class="custom-radio"></div>
+          </div>
+          <div class="setting-option ${tempSelectedText === 'none' ? 'selected' : ''}" onclick="tempSelectedText='none';renderSettingsOptions();">
+            <span>None</span>
+            <div class="custom-radio"></div>
+          </div>
+        `;
+
+        if (subtitleTracks.length > 0) {
+          subtitleTracks.forEach((track, index) => {
+            const langName = track.name || track.lang || 'Subtitle ' + (index + 1);
+            const label = `${langName} (CC)`;
+
+            container.innerHTML += `
+              <div class="setting-option ${tempSelectedText === index ? 'selected' : ''}" onclick="tempSelectedText=${index};renderSettingsOptions();">
+                <span>${label}</span>
+                <div class="custom-radio"></div>
+              </div>
+            `;
+          });
+        }
+      }
+      else if (currentTab === 'speed') {
+        [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(sp => {
+          container.innerHTML += `
+            <div class="setting-option ${tempSelectedSpeed === sp ? 'selected' : ''}" onclick="tempSelectedSpeed=${sp};renderSettingsOptions();">
+              <span>${sp === 1 ? 'Normal' : sp + 'x'}</span>
+              <div class="custom-radio"></div>
+            </div>
+          `;
+        });
+      }
+    }
+
+    function applySettings() {
+      if (hls) {
+        hls.currentLevel = tempSelectedLevel;
+
+        if (tempSelectedAudio === 'auto') { 
+          hls.audioTrack = -1; video.muted = false; 
+        } else if (tempSelectedAudio === 'none') { 
+          video.muted = true; 
+        } else if (typeof tempSelectedAudio === 'number') { 
+          video.muted = false; hls.audioTrack = tempSelectedAudio; 
+        }
+
+        if (tempSelectedText === 'auto') { 
+          hls.subtitleTrack = -1; hls.subtitleDisplay = true; 
+        } else if (tempSelectedText === 'none') { 
+          hls.subtitleTrack = -1; hls.subtitleDisplay = false; 
+        } else if (typeof tempSelectedText === 'number') { 
+          hls.subtitleTrack = tempSelectedText; hls.subtitleDisplay = true; 
+        }
+      }
+      
+      video.playbackRate = tempSelectedSpeed;
+      closeAllModals();
+    }
+
+    function parseM3U(content) {
+      const lines = content.split('\n');
+      const channels = [];
+      let currentChannel = {};
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (line.startsWith('#EXTINF:')) {
+          const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+          currentChannel.logo = logoMatch ? logoMatch[1] : '';
+          const groupMatch = line.match(/group-title="([^"]+)"/);
+          currentChannel.group = groupMatch ? groupMatch[1] : 'General';
+          const nameParts = line.split(',');
+          currentChannel.name = nameParts[nameParts.length - 1].trim() || 'Unknown';
+        } else if (line.length > 0 && !line.startsWith('#')) {
+          currentChannel.url = line;
+          channels.push(currentChannel);
+          currentChannel = {};
+        }
+      }
+      return channels;
+    }
+
+    async function loadCategoryCounts() {
+      const categories = getCategories();
+      renderCategories();
+
+      for (const cat of categories) {
+        if (cat.type === 'content') {
+          categoryCounts[cat.id] = parseM3U(cat.data).length;
+        } else if (cat.type === 'link') {
+          try {
+            const res = await fetch(cat.data);
+            const text = await res.text();
+            categoryCounts[cat.id] = parseM3U(text).length;
+          } catch(e) { categoryCounts[cat.id] = 0; }
+        }
+        updateCategoryCountBadge(cat.id, categoryCounts[cat.id]);
+      }
+    }
+
+    function updateCategoryCountBadge(catId, count) {
+      const badge = document.getElementById(`cat-count-${catId}`);
+      if (badge && count !== undefined) badge.innerText = `(${count})`;
+    }
+
+    function onCategoryClick(catId) {
+      const categories = getCategories();
+      const category = categories.find(c => c.id === catId);
+      if(!category) return;
+
+      currentCategoryName = category.name;
+      document.getElementById('channel-search-input').value = '';
+      channelSectionTitle.innerText = `Channels (${category.name})`;
+      channelsContainer.innerHTML = "<p style='color: var(--text-muted);'>লোডিং...</p>";
+      groupFiltersContainer.style.display = 'none';
+
+      if (category.type === 'link') {
+        fetch(category.data)
+          .then(res => res.text())
+          .then(data => {
+            currentLoadedChannels = parseM3U(data);
+            setupGroupFilters(currentLoadedChannels);
+            displayChannels(currentLoadedChannels);
+          });
+      } else {
+        currentLoadedChannels = parseM3U(category.data);
+        setupGroupFilters(currentLoadedChannels);
+        displayChannels(currentLoadedChannels);
+      }
+    }
+
+    /* Group Filters Sorted A-Z */
+    function setupGroupFilters(channels) {
+      groupFiltersContainer.innerHTML = "";
+      
+      // Extract unique groups and sort them Alphabetically A to Z
+      const rawGroups = [...new Set(channels.map(ch => ch.group).filter(Boolean))];
+      rawGroups.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+      if (rawGroups.length <= 1) return;
+
+      const sortedGroups = ['All', ...rawGroups];
+
+      groupFiltersContainer.style.display = 'flex';
+      sortedGroups.forEach(group => {
+        const chip = document.createElement('div');
+        chip.className = 'group-chip';
+        chip.innerText = group;
+        chip.onclick = (e) => {
+          document.querySelectorAll('.group-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          displayChannels(group === 'All' ? currentLoadedChannels : currentLoadedChannels.filter(c => c.group === group));
+        };
+        if(group === 'All') chip.classList.add('active');
+        groupFiltersContainer.appendChild(chip);
+      });
+    }
+
+    function displayChannels(channels) {
+      channelsContainer.innerHTML = "";
+      channelSectionTitle.innerText = `Channels (${currentCategoryName} - ${channels.length})`;
+
+      const defaultIcon = "https://cdn-icons-png.flaticon.com/512/3075/3075908.png";
+      channels.forEach(ch => {
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+        card.onclick = () => playStream(ch.url, ch.name);
+        card.innerHTML = `<img class="channel-logo" src="${ch.logo || defaultIcon}" onerror="this.src='${defaultIcon}'"><div class="channel-title">${ch.name}</div>`;
+        channelsContainer.appendChild(card);
+      });
+    }
+
+    function renderCategories() {
+      const categories = getCategories();
+      categoryGrid.innerHTML = "";
+
+      categories.forEach(cat => {
+        const countText = categoryCounts[cat.id] !== undefined ? `(${categoryCounts[cat.id]})` : '(...)';
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.onclick = () => onCategoryClick(cat.id);
+        card.innerHTML = `
+          <div class="category-icon"><i class="fa-solid ${cat.icon || 'fa-list'}"></i></div>
+          <div class="category-name">${cat.name} <span class="channel-count-badge" id="cat-count-${cat.id}">${countText}</span></div>
+        `;
+        categoryGrid.appendChild(card);
+      });
+    }
+
+    function filterChannels() {
+      const query = document.getElementById('channel-search-input').value.toLowerCase();
+      document.querySelectorAll('#channels-container .channel-card').forEach(card => {
+        card.style.display = card.querySelector('.channel-title').innerText.toLowerCase().includes(query) ? 'flex' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>
