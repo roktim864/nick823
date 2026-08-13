@@ -3,10 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live TV Pro Player</title>
+  <title>Live TV Pro - Custom Player Settings & Channel Search</title>
   
-  <!-- HLS.js & Plyr -->
+  <!-- HLS.js for Live Streaming -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <!-- Plyr Video Player CSS & JS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
@@ -14,168 +16,557 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: #121212;
+      color: #ffffff;
+      padding-bottom: 30px;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      background-color: #1f1f1f;
+      border-bottom: 1px solid #333;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ff3b30;
+    }
+
+    .header-icons {
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+
+    /* Fixed/Sticky Player Area */
+    .sticky-player-area {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      background-color: #121212;
+      padding-top: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #222;
+    }
+
+    .player-wrapper {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+    }
+
     :root {
       --plyr-color-main: #ff3b30;
-      --bg-color: #121212;
-      --card-bg: #1e1e1e;
-      --card-border: #2a2a2a;
-      --text-color: #ffffff;
-      --text-muted: #888888;
-      --header-bg: #1f1f1f;
-      --modal-bg: #1c1c1c;
-      --border-color: #333333;
     }
 
-    [data-theme="light"] {
-      --bg-color: #f4f5f7;
-      --card-bg: #ffffff;
-      --card-border: #e0e0e0;
-      --text-color: #111111;
-      --text-muted: #666666;
-      --header-bg: #ffffff;
-      --modal-bg: #ffffff;
-      --border-color: #e5e5e5;
+    /* Now Playing Bar */
+    .now-playing {
+      padding: 12px 15px;
+      background-color: #1a1a1a;
+      font-size: 0.9rem;
+      color: #ddd;
+      border-top: 1px solid #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
-    body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 30px; }
-
-    /* Premium Fullscreen Splash Screen Loader */
-    #page-loader {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background: var(--bg-color); z-index: 99999;
-      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-    
-    .splash-logo-wrapper {
-      position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
-      animation: pulse 1.8s infinite ease-in-out;
+    .now-playing-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
-    .splash-logo-wrapper i { font-size: 3.5rem; color: #ff3b30; }
-    .splash-logo-wrapper h2 { font-size: 1.6rem; font-weight: 700; color: var(--text-color); letter-spacing: 0.5px; }
-
-    .loader-ring {
-      width: 48px; height: 48px; border: 4px solid rgba(255, 59, 48, 0.15);
-      border-left-color: #ff3b30; border-radius: 50%;
-      animation: spinRing 0.8s linear infinite;
+    .settings-btn {
+      background: #2a2a2a;
+      color: #fff;
+      border: 1px solid #3d3d3d;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      transition: 0.2s;
     }
 
-    @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.05); opacity: 1; } }
-
-    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); }
-    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: bold; color: #ff3b30; }
-
-    /* Animated Theme Toggle Button */
-    .theme-toggle-btn {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      width: 44px; height: 44px; border-radius: 50%; display: flex;
-      align-items: center; justify-content: center; cursor: pointer;
-      font-size: 1.2rem; color: #ff3b30; outline: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.3s ease;
+    .settings-btn:hover {
+      background: #ff3b30;
+      border-color: #ff3b30;
     }
-    .theme-toggle-btn i { transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
-    .theme-toggle-btn:active i { transform: rotate(360deg) scale(1.3); }
 
-    .sticky-player-area { position: sticky; top: 0; z-index: 90; background-color: var(--bg-color); padding: 10px 0; border-bottom: 1px solid var(--border-color); }
-    .player-wrapper { width: 100%; max-width: 900px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    /* Main Container */
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
 
-    .now-playing { padding: 12px 15px; background-color: var(--card-bg); font-size: 0.9rem; color: var(--text-color); border-top: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; }
-    .now-playing-left { display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    /* Main Channel Search Bar (Above Categories) */
+    .main-search-wrapper {
+      margin-top: 20px;
+      position: relative;
+      width: 100%;
+    }
 
-    .settings-btn { background: var(--border-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
-    .settings-btn:hover { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+    .main-search-wrapper input {
+      width: 100%;
+      padding: 12px 15px 12px 42px;
+      background: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: 0.3s;
+    }
 
-    .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
+    .main-search-wrapper input:focus {
+      border-color: #ff3b30;
+      box-shadow: 0 0 10px rgba(255, 59, 48, 0.2);
+    }
 
-    .main-search-wrapper { margin-top: 20px; position: relative; width: 100%; }
-    .main-search-wrapper input { width: 100%; padding: 12px 15px 12px 42px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-color); font-size: 0.95rem; outline: none; }
-    .main-search-wrapper input:focus { border-color: #ff3b30; }
-    .main-search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .main-search-wrapper i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      font-size: 1rem;
+    }
 
-    .section-title { margin: 20px 0 12px; font-size: 1.1rem; color: var(--text-color); }
+    .section-title {
+      margin: 20px 0 12px;
+      font-size: 1.1rem;
+      color: #fff;
+    }
 
-    .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-bottom: 25px; }
-    .category-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer; }
-    .category-card:hover { border-color: #ff3b30; }
-    .category-icon { width: 45px; height: 45px; background: rgba(255, 59, 48, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #ff3b30; font-size: 1.2rem; }
-    .category-name { font-size: 0.85rem; font-weight: 600; }
-    .channel-count-badge { font-size: 0.75rem; color: #ff3b30; font-weight: bold; margin-left: 2px; }
+    /* Categories Grid */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
 
-    .group-filters-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 15px; white-space: nowrap; }
-    .group-chip { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; }
-    .group-chip:hover, .group-chip.active { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+    .category-card {
+      background: #1e1e1e;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 15px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-    .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
-    .channel-card { background: var(--card-bg); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; border: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .channel-card:hover { border-color: #ff3b30; transform: translateY(-2px); }
-    .channel-logo { width: 45px; height: 45px; object-fit: contain; background: var(--bg-color); border-radius: 8px; padding: 4px; }
-    .channel-title { font-size: 0.8rem; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .category-card:hover {
+      border-color: #ff3b30;
+      background: #251d1d;
+    }
 
-    /* Custom Settings Modal */
-    .settings-modal, .exit-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 420px; background: var(--modal-bg); border-radius: 12px; z-index: 300; display: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--card-border); }
-    .settings-modal.active, .exit-modal.active { display: block; animation: modalPop 0.25s ease-out; }
-    @keyframes modalPop { 0% { transform: translate(-50%, -45%) scale(0.95); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+    .category-icon {
+      width: 45px;
+      height: 45px;
+      background: #2d1f1f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      color: #ff3b30;
+      font-size: 1.2rem;
+    }
 
-    .settings-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px 10px; }
-    .settings-header h3 { font-size: 1.15rem; font-weight: 600; color: var(--text-color); }
-    .settings-tabs { display: flex; border-bottom: 1px solid var(--border-color); padding: 0 20px; gap: 20px; }
-    .tab-btn { background: none; border: none; color: var(--text-muted); font-weight: 700; font-size: 0.85rem; padding-bottom: 10px; cursor: pointer; position: relative; }
-    .tab-btn.active { color: var(--text-color); }
-    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: #ff3b30; border-radius: 2px; }
-    
-    .settings-content { padding: 10px 20px; max-height: 260px; overflow-y: auto; }
-    .setting-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; color: var(--text-color); font-size: 0.9rem; border-bottom: 1px solid var(--border-color); }
-    .setting-option:last-child { border-bottom: none; }
-    .custom-radio { width: 18px; height: 18px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .category-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .channel-count-badge {
+      font-size: 0.75rem;
+      color: #ff3b30;
+      font-weight: bold;
+      margin-left: 2px;
+    }
+
+    /* Group Title Filter Chips Container */
+    .group-filters-container {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+      white-space: nowrap;
+    }
+    .group-filters-container::-webkit-scrollbar {
+      height: 4px;
+    }
+    .group-filters-container::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
+    }
+
+    .group-chip {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      color: #aaa;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .group-chip:hover, .group-chip.active {
+      background: #ff3b30;
+      border-color: #ff3b30;
+      color: #fff;
+    }
+
+    /* Channels Grid */
+    .channels-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 12px;
+    }
+
+    .channel-card {
+      background: #1e1e1e;
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid #2a2a2a;
+      transition: 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .channel-card:hover {
+      border-color: #ff3b30;
+      transform: translateY(-2px);
+    }
+
+    .channel-logo {
+      width: 45px;
+      height: 45px;
+      object-fit: contain;
+      background: #121212;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .channel-title {
+      font-size: 0.8rem;
+      font-weight: 500;
+      line-height: 1.2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Sidebar Menu */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 280px;
+      height: 100%;
+      background: #181818;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.7);
+      transition: 0.3s;
+      z-index: 200;
+      padding: 20px;
+    }
+
+    .sidebar.open { right: 0; }
+
+    .close-btn {
+      text-align: right;
+      font-size: 1.5rem;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      color: #fff;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: #222;
+      cursor: pointer;
+    }
+
+    .menu-item:hover { background: #333; }
+
+    /* --- Custom Video Settings Modal --- */
+    .settings-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 400px;
+      background: #1c1c1c;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+      z-index: 300;
+      display: none;
+      overflow: hidden;
+    }
+
+    .settings-modal.active { display: block; }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 20px 10px;
+    }
+
+    .settings-header h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .settings-header i {
+      font-size: 1.2rem;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    /* Tabs Bar */
+    .settings-tabs {
+      display: flex;
+      border-bottom: 1px solid #2a2a2a;
+      padding: 0 20px;
+      gap: 20px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: #888;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding-bottom: 10px;
+      cursor: pointer;
+      position: relative;
+      letter-spacing: 0.5px;
+    }
+
+    .tab-btn.active { color: #fff; }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: #ff3b30;
+      border-radius: 2px;
+    }
+
+    /* Settings Content List */
+    .settings-content {
+      padding: 10px 20px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .setting-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.95rem;
+    }
+
+    /* Custom Radio Buttons */
+    .custom-radio {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #666;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+
     .setting-option.selected .custom-radio { border-color: #ff3b30; }
-    .setting-option.selected .custom-radio::after { content: ''; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; }
 
-    .settings-footer { display: flex; justify-content: flex-end; gap: 20px; padding: 15px 20px; border-top: 1px solid var(--border-color); }
-    .footer-btn { background: none; border: none; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
-    .btn-cancel { color: var(--text-muted); } .btn-apply { color: #ff3b30; }
+    .setting-option.selected .custom-radio::after {
+      content: '';
+      width: 10px;
+      height: 10px;
+      background-color: #ff3b30;
+      border-radius: 50%;
+    }
 
-    /* Exit Modal Specific */
-    .exit-modal-body { padding: 25px 20px; text-align: center; }
-    .exit-modal-body i { font-size: 2.5rem; color: #ff3b30; margin-bottom: 12px; }
-    .exit-modal-body h3 { margin-bottom: 8px; font-size: 1.2rem; }
-    .exit-modal-body p { font-size: 0.9rem; color: var(--text-muted); }
-    .exit-actions { display: flex; gap: 12px; padding: 0 20px 20px; }
-    .exit-btn { flex: 1; padding: 10px; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; font-size: 0.95rem; }
-    .exit-btn-no { background: var(--border-color); color: var(--text-color); }
-    .exit-btn-yes { background: #ff3b30; color: #fff; }
+    /* Modal Footer Buttons */
+    .settings-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 20px;
+      padding: 15px 20px;
+      border-top: 1px solid #2a2a2a;
+    }
 
-    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 150; }
+    .footer-btn {
+      background: none;
+      border: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-cancel { color: #888; }
+    .btn-apply { color: #ff3b30; }
+
+    /* Admin Modal & Login Modal */
+    .modal {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%; max-width: 450px;
+      max-height: 85vh; overflow-y: auto;
+      background: #1f1f1f;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      z-index: 300;
+      display: none;
+    }
+    .modal.active { display: block; }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #333;
+      padding-bottom: 10px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+      color: #aaa;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 10px;
+      background: #121212;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 6px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .btn-danger { background: #ff3b30; color: #fff; }
+    .btn-success { background: #28a745; color: #fff; }
+
+    .admin-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: #121212;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+
+    .delete-icon { color: #ff3b30; cursor: pointer; }
+
+    /* Overlay */
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      z-index: 150;
+    }
+
     .overlay.active { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- App Intro / Splash Screen Loader -->
-  <div id="page-loader">
-    <div class="splash-logo-wrapper">
-      <i class="fa-solid fa-tv"></i>
-      <h2>Live TV Pro</h2>
-    </div>
-    <div class="loader-ring"></div>
-    <div style="font-weight: 500; font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">Starting app...</div>
-  </div>
-
-  <!-- Modal Overlay -->
+  <!-- Overlay -->
   <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
 
   <!-- Header -->
   <header>
-    <div class="logo"><i class="fa-solid fa-tv"></i> Live TV Pro</div>
-    <!-- Theme Toggle Switch -->
-    <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
-      <i class="fa-solid fa-moon" id="theme-icon"></i>
-    </button>
+    <div class="logo">
+      <i class="fa-solid fa-tv"></i> Live TV Pro
+    </div>
+    <div class="header-icons">
+      <i class="fa-solid fa-bars" onclick="toggleMenu()"></i>
+    </div>
   </header>
 
-  <!-- Sticky Player -->
+  <!-- Navigation Menu -->
+  <div class="sidebar" id="sidebar">
+    <div class="close-btn" onclick="toggleMenu()">&times;</div>
+    <h3>Menu</h3>
+    <br>
+    <div class="menu-item" onclick="handleAdminMenuClick()">
+      <i class="fa-solid fa-user-shield" style="color: #ff3b30;"></i>
+      Admin Panel
+    </div>
+  </div>
+
+  <!-- Sticky Player Area -->
   <div class="sticky-player-area">
     <div class="player-wrapper">
       <video id="video-player" controls autoplay crossorigin playsinline></video>
@@ -184,13 +575,18 @@
           <i class="fa-solid fa-circle-play" style="color: #ff3b30;"></i>
           <span id="now-playing-title">Select a channel to play...</span>
         </div>
-        <button class="settings-btn" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> Settings</button>
+        <!-- Settings Gear Icon Button -->
+        <button class="settings-btn" onclick="openSettingsModal()">
+          <i class="fa-solid fa-gear"></i> Settings
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Main Container -->
+  <!-- Main Content -->
   <div class="container">
+    
+    <!-- Main Channel Search Bar (Above Categories) -->
     <div class="main-search-wrapper">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input type="text" id="channel-search-input" placeholder="Search your favorite channels..." onkeyup="filterChannels()">
@@ -200,42 +596,85 @@
     <div class="category-grid" id="category-grid"></div>
 
     <div class="section-title" id="channel-section-title">Channels</div>
+    
+    <!-- Group Title Filter Bar -->
     <div class="group-filters-container" id="group-filters-container" style="display: none;"></div>
+
     <div class="channels-grid" id="channels-container">
-      <p style="color: var(--text-muted); grid-column: 1/-1;">ক্যাটাগরি সিলেক্ট করুন...</p>
+      <p style="color: #777; grid-column: 1/-1;">ক্যাটাগরি সিলেক্ট করুন...</p>
     </div>
   </div>
 
-  <!-- Settings Modal -->
+  <!-- Custom Video Settings Modal -->
   <div class="settings-modal" id="settings-modal">
     <div class="settings-header">
       <h3>Video Settings</h3>
-      <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAllModals()"></i>
+      <i class="fa-solid fa-xmark" onclick="closeAllModals()"></i>
     </div>
+
+    <!-- Tabs -->
     <div class="settings-tabs">
       <button class="tab-btn active" id="tab-video-btn" onclick="switchTab('video')">Video</button>
       <button class="tab-btn" id="tab-audio-btn" onclick="switchTab('audio')">Audio</button>
       <button class="tab-btn" id="tab-text-btn" onclick="switchTab('text')">Text</button>
       <button class="tab-btn" id="tab-speed-btn" onclick="switchTab('speed')">Speed</button>
     </div>
+
+    <!-- Dynamic Options Content -->
     <div class="settings-content" id="settings-options"></div>
+
+    <!-- Footer Buttons -->
     <div class="settings-footer">
       <button class="footer-btn btn-cancel" onclick="closeAllModals()">Cancel</button>
       <button class="footer-btn btn-apply" onclick="applySettings()">Apply</button>
     </div>
   </div>
 
-  <!-- Exit Confirmation Modal (APK Exit) -->
-  <div class="exit-modal" id="exit-modal">
-    <div class="exit-modal-body">
-      <i class="fa-solid fa-circle-right"></i>
-      <h3>Exit App?</h3>
-      <p>আপনি কি অ্যাপটি থেকে বের হতে চান?</p>
+  <!-- Admin Login Modal -->
+  <div class="modal" id="admin-login-modal">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-lock" style="color: #ff3b30;"></i> Admin Login</h3>
+      <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeAllModals()"></i>
     </div>
-    <div class="exit-actions">
-      <button class="exit-btn exit-btn-no" onclick="closeExitModal()">NO</button>
-      <button class="exit-btn exit-btn-yes" onclick="confirmExitApp()">YES</button>
+    <div class="form-group">
+      <label>পাসওয়ার্ড প্রবেশ করান:</label>
+      <input type="password" id="admin-password" placeholder="Password">
+      <p id="login-error" style="color: #ff3b30; font-size: 0.8rem; margin-top: 5px; display: none;">ভুল পাসওয়ার্ড! আবার চেষ্টা করুন।</p>
     </div>
+    <button class="btn btn-danger" onclick="verifyAdminLogin()">Login</button>
+  </div>
+
+  <!-- Admin Panel Modal -->
+  <div class="modal" id="admin-modal">
+    <div class="modal-header">
+      <h3>Admin Dashboard</h3>
+      <i class="fa-solid fa-xmark" style="cursor: pointer;" onclick="closeAllModals()"></i>
+    </div>
+    
+    <div class="form-group">
+      <h4>১. M3U Link যুক্ত করুন</h4>
+      <label>ক্যাটাগরির নাম:</label>
+      <input type="text" id="link-cat-name" placeholder="যেমন: Bangladesh, Sports">
+      <label>M3U URL Link:</label>
+      <input type="text" id="link-cat-url" placeholder="https://example.com/playlist.m3u">
+      <button class="btn btn-success" onclick="addLinkCategory()">Add M3U Link</button>
+    </div>
+
+    <hr style="border-color: #333; margin: 15px 0;">
+
+    <div class="form-group">
+      <h4>২. Storage থেকে ফাইল আপলোড করুন</h4>
+      <label>ক্যাটাগরির নাম:</label>
+      <input type="text" id="file-cat-name" placeholder="যেমন: Local M3U Playlist">
+      <label>M3U / M3U8 ফাইল সিলেক্ট করুন:</label>
+      <input type="file" id="file-cat-input" accept=".m3u,.m3u8">
+      <button class="btn btn-success" onclick="addFileCategory()">Upload File Category</button>
+    </div>
+
+    <hr style="border-color: #333; margin: 15px 0;">
+
+    <h4>৩. ক্যাটাগরি ডিলিট/ম্যানেজ করুন</h4>
+    <div id="admin-category-list" style="margin-top: 10px;"></div>
   </div>
 
   <script>
@@ -244,12 +683,17 @@
     const channelsContainer = document.getElementById('channels-container');
     const channelSectionTitle = document.getElementById('channel-section-title');
     const categoryGrid = document.getElementById('category-grid');
+    const adminCategoryList = document.getElementById('admin-category-list');
     const groupFiltersContainer = document.getElementById('group-filters-container');
-    const pageLoader = document.getElementById('page-loader');
+    
+    // Admin Password (Changeable)
+    const ADMIN_PASS = "Sompa888";
+    let isAdminLoggedIn = false;
 
     let hls = new Hls();
     let plyrPlayer = null;
 
+    // State Variables for Settings & Groups
     let currentTab = 'video';
     let availableLevels = [];
     let tempSelectedLevel = -1;
@@ -259,7 +703,18 @@
 
     let currentCategoryName = '';
     let currentLoadedChannels = [];
+    let currentActiveGroup = 'All';
+
+    // Global Channel Counts Cache per Category ID
     let categoryCounts = {};
+
+    document.addEventListener('DOMContentLoaded', () => {
+      plyrPlayer = new Plyr(video, {
+        controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+        autoplay: true
+      });
+      loadCategoryCounts();
+    });
 
     const defaultCategories = [
       { id: 'cat_1', type: 'link', name: 'Bangladesh', icon: 'fa-tv', data: 'https://iptv-org.github.io/iptv/countries/bd.m3u' },
@@ -271,72 +726,48 @@
       return saved ? JSON.parse(saved) : defaultCategories;
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      plyrPlayer = new Plyr(video, { controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'], autoplay: true });
-      initTheme();
+    function saveCategories(categories) {
+      localStorage.setItem('live_tv_categories', JSON.stringify(categories));
       loadCategoryCounts();
-
-      // Hide Splash Loader smoothly after initialization
-      setTimeout(() => {
-        pageLoader.style.opacity = '0';
-        pageLoader.style.visibility = 'hidden';
-      }, 1200);
-
-      // Handle Android Hardware Back Button (In WebView / Capacitor / Cordova)
-      window.addEventListener('popstate', (e) => {
-        e.preventDefault();
-        openExitModal();
-      });
-      history.pushState(null, null, location.href);
-    });
-
-    /* Theme Toggle Logic with Rotation Animation */
-    function initTheme() {
-      const savedTheme = localStorage.getItem('app_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', savedTheme);
-      updateThemeIcon(savedTheme);
+      renderAdminCategoryList();
     }
 
-    function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('app_theme', newTheme);
-      updateThemeIcon(newTheme);
+    function toggleMenu() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('active');
     }
 
-    function updateThemeIcon(theme) {
-      const icon = document.getElementById('theme-icon');
-      if (theme === 'light') {
-        icon.className = 'fa-solid fa-sun';
+    function handleAdminMenuClick() {
+      toggleMenu();
+      if (isAdminLoggedIn) {
+        openAdminModal();
       } else {
-        icon.className = 'fa-solid fa-moon';
+        document.getElementById('admin-login-modal').classList.add('active');
+        document.getElementById('overlay').classList.add('active');
       }
     }
 
-    /* Exit Modal Logic */
-    function openExitModal() {
-      document.getElementById('exit-modal').classList.add('active');
+    function verifyAdminLogin() {
+      const inputPass = document.getElementById('admin-password').value;
+      const errorMsg = document.getElementById('login-error');
+
+      if (inputPass === ADMIN_PASS) {
+        isAdminLoggedIn = true;
+        errorMsg.style.display = 'none';
+        document.getElementById('admin-password').value = '';
+        closeAllModals();
+        openAdminModal();
+      } else {
+        errorMsg.style.display = 'block';
+      }
+    }
+
+    function openAdminModal() {
+      document.getElementById('admin-modal').classList.add('active');
       document.getElementById('overlay').classList.add('active');
+      renderAdminCategoryList();
     }
 
-    function closeExitModal() {
-      document.getElementById('exit-modal').classList.remove('active');
-      document.getElementById('overlay').classList.remove('active');
-      history.pushState(null, null, location.href);
-    }
-
-    function confirmExitApp() {
-      if (navigator.app && navigator.app.exitApp) {
-        navigator.app.exitApp();
-      } else if (navigator.device && navigator.device.exitApp) {
-        navigator.device.exitApp();
-      } else {
-        window.close();
-      }
-    }
-
-    /* Modal Controls */
     function openSettingsModal() {
       document.getElementById('settings-modal').classList.add('active');
       document.getElementById('overlay').classList.add('active');
@@ -344,16 +775,18 @@
     }
 
     function closeAllModals() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('admin-login-modal').classList.remove('active');
+      document.getElementById('admin-modal').classList.remove('active');
       document.getElementById('settings-modal').classList.remove('active');
-      document.getElementById('exit-modal').classList.remove('active');
       document.getElementById('overlay').classList.remove('active');
     }
 
     function playStream(url, title) {
       nowPlayingTitle.innerText = title;
-      tempSelectedLevel = -1; 
-      tempSelectedAudio = 'auto'; 
-      tempSelectedText = 'auto'; 
+      tempSelectedLevel = -1;
+      tempSelectedAudio = 'auto';
+      tempSelectedText = 'auto';
       tempSelectedSpeed = 1;
 
       if (Hls.isSupported()) {
@@ -361,13 +794,16 @@
         hls = new Hls();
         hls.loadSource(url);
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { 
-          availableLevels = hls.levels; 
-          video.play(); 
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+          availableLevels = hls.levels;
+          video.play();
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = url;
         video.play();
+      } else {
+        alert("আপনার ব্রাউজারে HLS প্লেব্যাক সাপোর্ট করছে না।");
       }
     }
 
@@ -384,22 +820,21 @@
 
       if (currentTab === 'video') {
         container.innerHTML += `
-          <div class="setting-option ${tempSelectedLevel === -1 ? 'selected' : ''}" onclick="tempSelectedLevel=-1;renderSettingsOptions();">
-            <span>Auto</span>
+          <div class="setting-option ${tempSelectedLevel === -1 ? 'selected' : ''}" onclick="selectLevelOption(-1)">
+            <span class="option-label">Auto</span>
             <div class="custom-radio"></div>
           </div>
         `;
 
-        if (availableLevels && availableLevels.length > 0) {
+        if (availableLevels.length > 0) {
           availableLevels.forEach((level, index) => {
-            const w = level.width || 1280;
-            const h = level.height || 720;
+            const res = `${level.width || 1280} × ${level.height || 720}`;
             const mbps = level.bitrate ? (level.bitrate / 1000000).toFixed(2) + ' Mbps' : '';
-            const label = `${w} × ${h} ${mbps ? '• ' + mbps : ''}`;
+            const label = `${res} • ${mbps}`;
 
             container.innerHTML += `
-              <div class="setting-option ${tempSelectedLevel === index ? 'selected' : ''}" onclick="tempSelectedLevel=${index};renderSettingsOptions();">
-                <span>${label}</span>
+              <div class="setting-option ${tempSelectedLevel === index ? 'selected' : ''}" onclick="selectLevelOption(${index})">
+                <span class="option-label">${label}</span>
                 <div class="custom-radio"></div>
               </div>
             `;
@@ -407,29 +842,22 @@
         }
       } 
       else if (currentTab === 'audio') {
-        const audioTracks = hls ? (hls.audioTracks || []) : [];
-
+        const audioTracks = hls.audioTracks || [];
         container.innerHTML += `
-          <div class="setting-option ${tempSelectedAudio === 'auto' ? 'selected' : ''}" onclick="tempSelectedAudio='auto';renderSettingsOptions();">
-            <span>Auto</span>
+          <div class="setting-option ${tempSelectedAudio === 'auto' ? 'selected' : ''}" onclick="selectAudioOption('auto')">
+            <span class="option-label">Auto</span>
             <div class="custom-radio"></div>
           </div>
-          <div class="setting-option ${tempSelectedAudio === 'none' ? 'selected' : ''}" onclick="tempSelectedAudio='none';renderSettingsOptions();">
-            <span>None</span>
+          <div class="setting-option ${tempSelectedAudio === 'none' ? 'selected' : ''}" onclick="selectAudioOption('none')">
+            <span class="option-label">None</span>
             <div class="custom-radio"></div>
           </div>
         `;
-
         if (audioTracks.length > 0) {
           audioTracks.forEach((track, index) => {
-            const lang = track.name || track.lang || 'Audio Track ' + (index + 1);
-            const channelInfo = track.channels ? (track.channels === 2 ? 'Stereo' : track.channels + ' Channels') : 'Stereo';
-            const bitrate = track.bitrate ? Math.round(track.bitrate / 1000) + ' kbps' : '128 kbps';
-            const label = `${lang} • ${channelInfo} ${bitrate}`;
-
             container.innerHTML += `
-              <div class="setting-option ${tempSelectedAudio === index ? 'selected' : ''}" onclick="tempSelectedAudio=${index};renderSettingsOptions();">
-                <span>${label}</span>
+              <div class="setting-option ${tempSelectedAudio === index ? 'selected' : ''}" onclick="selectAudioOption(${index})">
+                <span class="option-label">${track.name || track.lang || 'Audio Track ' + (index + 1)}</span>
                 <div class="custom-radio"></div>
               </div>
             `;
@@ -437,27 +865,22 @@
         }
       } 
       else if (currentTab === 'text') {
-        const subtitleTracks = hls ? (hls.subtitleTracks || []) : [];
-
+        const subtitleTracks = hls.subtitleTracks || [];
         container.innerHTML += `
-          <div class="setting-option ${tempSelectedText === 'auto' ? 'selected' : ''}" onclick="tempSelectedText='auto';renderSettingsOptions();">
-            <span>Auto</span>
+          <div class="setting-option ${tempSelectedText === 'auto' ? 'selected' : ''}" onclick="selectTextOption('auto')">
+            <span class="option-label">Auto</span>
             <div class="custom-radio"></div>
           </div>
-          <div class="setting-option ${tempSelectedText === 'none' ? 'selected' : ''}" onclick="tempSelectedText='none';renderSettingsOptions();">
-            <span>None</span>
+          <div class="setting-option ${tempSelectedText === 'none' ? 'selected' : ''}" onclick="selectTextOption('none')">
+            <span class="option-label">None</span>
             <div class="custom-radio"></div>
           </div>
         `;
-
         if (subtitleTracks.length > 0) {
           subtitleTracks.forEach((track, index) => {
-            const langName = track.name || track.lang || 'Subtitle ' + (index + 1);
-            const label = `${langName} (CC)`;
-
             container.innerHTML += `
-              <div class="setting-option ${tempSelectedText === index ? 'selected' : ''}" onclick="tempSelectedText=${index};renderSettingsOptions();">
-                <span>${label}</span>
+              <div class="setting-option ${tempSelectedText === index ? 'selected' : ''}" onclick="selectTextOption(${index})">
+                <span class="option-label">${track.name || track.lang || 'Subtitle ' + (index + 1)}</span>
                 <div class="custom-radio"></div>
               </div>
             `;
@@ -465,10 +888,11 @@
         }
       }
       else if (currentTab === 'speed') {
-        [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(sp => {
+        const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+        speeds.forEach(sp => {
           container.innerHTML += `
-            <div class="setting-option ${tempSelectedSpeed === sp ? 'selected' : ''}" onclick="tempSelectedSpeed=${sp};renderSettingsOptions();">
-              <span>${sp === 1 ? 'Normal' : sp + 'x'}</span>
+            <div class="setting-option ${tempSelectedSpeed === sp ? 'selected' : ''}" onclick="selectSpeedOption(${sp})">
+              <span class="option-label">${sp === 1 ? 'Normal' : sp + 'x'}</span>
               <div class="custom-radio"></div>
             </div>
           `;
@@ -476,31 +900,41 @@
       }
     }
 
+    function selectLevelOption(index) { tempSelectedLevel = index; renderSettingsOptions(); }
+    function selectAudioOption(val) { tempSelectedAudio = val; renderSettingsOptions(); }
+    function selectTextOption(val) { tempSelectedText = val; renderSettingsOptions(); }
+    function selectSpeedOption(sp) { tempSelectedSpeed = sp; renderSettingsOptions(); }
+
     function applySettings() {
       if (hls) {
         hls.currentLevel = tempSelectedLevel;
+        if (tempSelectedAudio === 'auto') { hls.audioTrack = -1; video.muted = false; }
+        else if (tempSelectedAudio === 'none') { video.muted = true; }
+        else { video.muted = false; if (typeof tempSelectedAudio === 'number') hls.audioTrack = tempSelectedAudio; }
 
-        if (tempSelectedAudio === 'auto') { 
-          hls.audioTrack = -1; video.muted = false; 
-        } else if (tempSelectedAudio === 'none') { 
-          video.muted = true; 
-        } else if (typeof tempSelectedAudio === 'number') { 
-          video.muted = false; hls.audioTrack = tempSelectedAudio; 
-        }
-
-        if (tempSelectedText === 'auto') { 
-          hls.subtitleTrack = -1; hls.subtitleDisplay = true; 
-        } else if (tempSelectedText === 'none') { 
-          hls.subtitleTrack = -1; hls.subtitleDisplay = false; 
-        } else if (typeof tempSelectedText === 'number') { 
-          hls.subtitleTrack = tempSelectedText; hls.subtitleDisplay = true; 
-        }
+        if (tempSelectedText === 'auto') { hls.subtitleTrack = -1; hls.subtitleDisplay = true; }
+        else if (tempSelectedText === 'none') { hls.subtitleTrack = -1; hls.subtitleDisplay = false; }
+        else { if (typeof tempSelectedText === 'number') { hls.subtitleTrack = tempSelectedText; hls.subtitleDisplay = true; } }
       }
-      
       video.playbackRate = tempSelectedSpeed;
       closeAllModals();
     }
 
+    function filterChannels() {
+      const query = document.getElementById('channel-search-input').value.toLowerCase();
+      const channelCards = document.querySelectorAll('#channels-container .channel-card');
+
+      channelCards.forEach(card => {
+        const name = card.querySelector('.channel-title').innerText.toLowerCase();
+        if (name.includes(query)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+
+    // Parse M3U Text File
     function parseM3U(content) {
       const lines = content.split('\n');
       const channels = [];
@@ -511,10 +945,12 @@
         if (line.startsWith('#EXTINF:')) {
           const logoMatch = line.match(/tvg-logo="([^"]+)"/);
           currentChannel.logo = logoMatch ? logoMatch[1] : '';
+
           const groupMatch = line.match(/group-title="([^"]+)"/);
           currentChannel.group = groupMatch ? groupMatch[1] : 'General';
+
           const nameParts = line.split(',');
-          currentChannel.name = nameParts[nameParts.length - 1].trim() || 'Unknown';
+          currentChannel.name = nameParts[nameParts.length - 1].trim() || 'Unknown Channel';
         } else if (line.length > 0 && !line.startsWith('#')) {
           currentChannel.url = line;
           channels.push(currentChannel);
@@ -524,19 +960,24 @@
       return channels;
     }
 
+    // Load and count total channels for each category
     async function loadCategoryCounts() {
       const categories = getCategories();
-      renderCategories();
+      renderCategories(); // Render initial list without counts or cached counts
 
       for (const cat of categories) {
         if (cat.type === 'content') {
-          categoryCounts[cat.id] = parseM3U(cat.data).length;
+          const count = parseM3U(cat.data).length;
+          categoryCounts[cat.id] = count;
         } else if (cat.type === 'link') {
           try {
             const res = await fetch(cat.data);
             const text = await res.text();
-            categoryCounts[cat.id] = parseM3U(text).length;
-          } catch(e) { categoryCounts[cat.id] = 0; }
+            const count = parseM3U(text).length;
+            categoryCounts[cat.id] = count;
+          } catch(e) {
+            categoryCounts[cat.id] = 0;
+          }
         }
         updateCategoryCountBadge(cat.id, categoryCounts[cat.id]);
       }
@@ -544,7 +985,9 @@
 
     function updateCategoryCountBadge(catId, count) {
       const badge = document.getElementById(`cat-count-${catId}`);
-      if (badge && count !== undefined) badge.innerText = `(${count})`;
+      if (badge && count !== undefined) {
+        badge.innerText = `(${count})`;
+      }
     }
 
     function onCategoryClick(catId) {
@@ -555,7 +998,7 @@
       currentCategoryName = category.name;
       document.getElementById('channel-search-input').value = '';
       channelSectionTitle.innerText = `Channels (${category.name})`;
-      channelsContainer.innerHTML = "<p style='color: var(--text-muted);'>লোডিং...</p>";
+      channelsContainer.innerHTML = "<p style='color: #888;'>লোডিং চ্যানেল...</p>";
       groupFiltersContainer.style.display = 'none';
 
       if (category.type === 'link') {
@@ -563,11 +1006,18 @@
           .then(res => res.text())
           .then(data => {
             currentLoadedChannels = parseM3U(data);
+            categoryCounts[catId] = currentLoadedChannels.length;
+            updateCategoryCountBadge(catId, currentLoadedChannels.length);
             setupGroupFilters(currentLoadedChannels);
             displayChannels(currentLoadedChannels);
+          })
+          .catch(() => {
+            channelsContainer.innerHTML = "<p style='color: red;'>চ্যানেল লোড করা সম্ভব হয়নি।</p>";
           });
-      } else {
+      } else if (category.type === 'content') {
         currentLoadedChannels = parseM3U(category.data);
+        categoryCounts[catId] = currentLoadedChannels.length;
+        updateCategoryCountBadge(catId, currentLoadedChannels.length);
         setupGroupFilters(currentLoadedChannels);
         displayChannels(currentLoadedChannels);
       }
@@ -576,28 +1026,60 @@
     function setupGroupFilters(channels) {
       groupFiltersContainer.innerHTML = "";
       const groups = ['All', ...new Set(channels.map(ch => ch.group))];
-      if (groups.length <= 2) return;
+
+      if (groups.length <= 2) {
+        groupFiltersContainer.style.display = 'none';
+        return;
+      }
 
       groupFiltersContainer.style.display = 'flex';
+      currentActiveGroup = 'All';
+
       groups.forEach(group => {
         const chip = document.createElement('div');
-        chip.className = 'group-chip';
+        chip.className = `group-chip ${group === 'All' ? 'active' : ''}`;
         chip.innerText = group;
-        chip.onclick = () => displayChannels(group === 'All' ? currentLoadedChannels : currentLoadedChannels.filter(c => c.group === group));
+        chip.onclick = () => {
+          document.querySelectorAll('.group-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          currentActiveGroup = group;
+          filterChannelsByGroup(group);
+        };
         groupFiltersContainer.appendChild(chip);
       });
+    }
+
+    function filterChannelsByGroup(group) {
+      if (group === 'All') {
+        displayChannels(currentLoadedChannels);
+      } else {
+        const filtered = currentLoadedChannels.filter(ch => ch.group === group);
+        displayChannels(filtered);
+      }
     }
 
     function displayChannels(channels) {
       channelsContainer.innerHTML = "";
       channelSectionTitle.innerText = `Channels (${currentCategoryName} - ${channels.length})`;
 
+      if (channels.length === 0) {
+        channelsContainer.innerHTML = "<p>কোন চ্যানেল পাওয়া যায়নি।</p>";
+        return;
+      }
+
       const defaultIcon = "https://cdn-icons-png.flaticon.com/512/3075/3075908.png";
+
       channels.forEach(ch => {
         const card = document.createElement('div');
         card.className = 'channel-card';
         card.onclick = () => playStream(ch.url, ch.name);
-        card.innerHTML = `<img class="channel-logo" src="${ch.logo || defaultIcon}" onerror="this.src='${defaultIcon}'"><div class="channel-title">${ch.name}</div>`;
+
+        const imgUrl = ch.logo && ch.logo.startsWith('http') ? ch.logo : defaultIcon;
+
+        card.innerHTML = `
+          <img class="channel-logo" src="${imgUrl}" onerror="this.src='${defaultIcon}'" alt="logo">
+          <div class="channel-title">${ch.name}</div>
+        `;
         channelsContainer.appendChild(card);
       });
     }
@@ -613,17 +1095,88 @@
         card.onclick = () => onCategoryClick(cat.id);
         card.innerHTML = `
           <div class="category-icon"><i class="fa-solid ${cat.icon || 'fa-list'}"></i></div>
-          <div class="category-name">${cat.name} <span class="channel-count-badge" id="cat-count-${cat.id}">${countText}</span></div>
+          <div class="category-name">
+            ${cat.name} <span class="channel-count-badge" id="cat-count-${cat.id}">${countText}</span>
+          </div>
         `;
         categoryGrid.appendChild(card);
       });
     }
 
-    function filterChannels() {
-      const query = document.getElementById('channel-search-input').value.toLowerCase();
-      document.querySelectorAll('#channels-container .channel-card').forEach(card => {
-        card.style.display = card.querySelector('.channel-title').innerText.toLowerCase().includes(query) ? 'flex' : 'none';
+    function renderAdminCategoryList() {
+      const categories = getCategories();
+      adminCategoryList.innerHTML = "";
+
+      categories.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'admin-list-item';
+        item.innerHTML = `
+          <span><b>${cat.name}</b> (${cat.type === 'link' ? 'Link' : 'Storage File'})</span>
+          <i class="fa-solid fa-trash delete-icon" title="Delete Category" onclick="deleteCategory('${cat.id}')"></i>
+        `;
+        adminCategoryList.appendChild(item);
       });
+    }
+
+    function addLinkCategory() {
+      const name = document.getElementById('link-cat-name').value.trim();
+      const url = document.getElementById('link-cat-url').value.trim();
+
+      if (!name || !url) {
+        alert('ক্যাটাগরির নাম ও লিংক প্রদান করুন।');
+        return;
+      }
+
+      const categories = getCategories();
+      categories.push({
+        id: 'cat_' + Date.now(),
+        type: 'link',
+        name: name,
+        icon: 'fa-link',
+        data: url
+      });
+      saveCategories(categories);
+      
+      document.getElementById('link-cat-name').value = '';
+      document.getElementById('link-cat-url').value = '';
+      alert('নতুন M3U লিংক সফলভাবে যোগ করা হয়েছে!');
+    }
+
+    function addFileCategory() {
+      const name = document.getElementById('file-cat-name').value.trim();
+      const fileInput = document.getElementById('file-cat-input');
+      const file = fileInput.files[0];
+
+      if (!name || !file) {
+        alert('ক্যাটাগরির নাম দিন এবং ফাইল সিলেক্ট করুন।');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const categories = getCategories();
+        categories.push({
+          id: 'cat_' + Date.now(),
+          type: 'content',
+          name: name,
+          icon: 'fa-folder-open',
+          data: e.target.result
+        });
+        saveCategories(categories);
+
+        document.getElementById('file-cat-name').value = '';
+        fileInput.value = '';
+        alert('ফাইল সফলভাবে ক্যাটাগরি হিসেবে যোগ হয়েছে!');
+      };
+      reader.readAsText(file);
+    }
+
+    function deleteCategory(catId) {
+      if (confirm('ক্যাটাগরিটি ডিলিট করতে চান?')) {
+        let categories = getCategories();
+        categories = categories.filter(c => c.id !== catId);
+        saveCategories(categories);
+      }
     }
   </script>
 </body>
