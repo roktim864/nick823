@@ -1,756 +1,588 @@
 <!DOCTYPE html>
-<html lang="bn" class="dark">
+<html lang="bn">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NOVA TV PRO</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: '#e50914',
-            darkBg: '#121212',
-            cardDark: '#1e1e1e'
-          }
-        }
-      }
-    }
-  </script>
+  <title>Live TV Pro Player</title>
+  
+  <!-- HLS.js & Plyr -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Plyr CSS and JS -->
   <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
   <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    body { overflow-x: hidden; }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
-    ::-webkit-scrollbar-thumb { background: #e50914; border-radius: 4px; }
-
-    .theme-icon-rotate {
-      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .dark .theme-icon-rotate {
-      transform: rotate(360deg);
-    }
-
-    .custom-radio {
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border: 2px solid #71717a;
-      border-radius: 50%;
-      outline: none;
-      cursor: pointer;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .custom-radio:checked {
-      border-color: #e50914;
-    }
-    .custom-radio:checked::after {
-      content: '';
-      position: absolute;
-      top: 3px; left: 3px;
-      width: 8px; height: 8px;
-      background-color: #e50914;
-      border-radius: 50%;
-    }
-
-    /* Plyr custom accent color matching brand */
     :root {
-      --plyr-color-main: #e50914;
+      --plyr-color-main: #ff3b30;
+      --bg-color: #121212;
+      --card-bg: #1e1e1e;
+      --card-border: #2a2a2a;
+      --text-color: #ffffff;
+      --text-muted: #888888;
+      --header-bg: #1f1f1f;
+      --modal-bg: #1c1c1c;
+      --border-color: #333333;
     }
-    .plyr {
-      height: 100%;
-      width: 100%;
+
+    [data-theme="light"] {
+      --bg-color: #f4f5f7;
+      --card-bg: #ffffff;
+      --card-border: #e0e0e0;
+      --text-color: #111111;
+      --text-muted: #666666;
+      --header-bg: #ffffff;
+      --modal-bg: #ffffff;
+      --border-color: #e5e5e5;
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; transition: background-color 0.3s, color 0.3s; }
+    body { background-color: var(--bg-color); color: var(--text-color); padding-bottom: 30px; }
+
+    /* Premium Fullscreen Splash Screen Loader */
+    #page-loader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: var(--bg-color); z-index: 99999;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+    
+    .splash-logo-wrapper {
+      position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+
+    .splash-logo-wrapper i { font-size: 3.5rem; color: #ff3b30; }
+    .splash-logo-wrapper h2 { font-size: 1.6rem; font-weight: 700; color: var(--text-color); letter-spacing: 0.5px; }
+
+    .loader-ring {
+      width: 48px; height: 48px; border: 4px solid rgba(255, 59, 48, 0.15);
+      border-left-color: #ff3b30; border-radius: 50%;
+      animation: spinRing 0.8s linear infinite;
+    }
+
+    @keyframes spinRing { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.05); opacity: 1; } }
+
+    header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: var(--header-bg); border-bottom: 1px solid var(--border-color); }
+    .logo { display: flex; align-items: center; gap: 10px; font-size: 1.2rem; font-weight: bold; color: #ff3b30; }
+
+    /* Animated Theme Toggle Button */
+    .theme-toggle-btn {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      width: 42px; height: 42px; border-radius: 50%; display: flex;
+      align-items: center; justify-content: center; cursor: pointer;
+      font-size: 1.1rem; color: #ff3b30; outline: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: transform 0.3s ease;
+    }
+    .theme-toggle-btn i { transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+    .theme-toggle-btn:active i { transform: rotate(360deg) scale(1.3); }
+
+    .sticky-player-area { position: sticky; top: 0; z-index: 90; background-color: var(--bg-color); padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+    .player-wrapper { width: 100%; max-width: 900px; margin: 0 auto; background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+
+    .now-playing { padding: 12px 15px; background-color: var(--card-bg); font-size: 0.9rem; color: var(--text-color); border-top: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; }
+    .now-playing-left { display: flex; align-items: center; gap: 10px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+    .settings-btn { background: var(--border-color); color: var(--text-color); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+    .settings-btn:hover { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+
+    .container { max-width: 900px; margin: 0 auto; padding: 0 15px; }
+
+    .main-search-wrapper { margin-top: 20px; position: relative; width: 100%; }
+    .main-search-wrapper input { width: 100%; padding: 12px 15px 12px 42px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; color: var(--text-color); font-size: 0.95rem; outline: none; }
+    .main-search-wrapper input:focus { border-color: #ff3b30; }
+    .main-search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    .section-title { margin: 20px 0 12px; font-size: 1.1rem; color: var(--text-color); }
+
+    .category-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .category-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 15px 10px; text-align: center; cursor: pointer; }
+    .category-card:hover { border-color: #ff3b30; }
+    .category-icon { width: 45px; height: 45px; background: rgba(255, 59, 48, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; color: #ff3b30; font-size: 1.2rem; }
+    .category-name { font-size: 0.85rem; font-weight: 600; }
+    .channel-count-badge { font-size: 0.75rem; color: #ff3b30; font-weight: bold; margin-left: 2px; }
+
+    .group-filters-container { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 15px; white-space: nowrap; }
+    .group-chip { background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-muted); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; cursor: pointer; }
+    .group-chip:hover, .group-chip.active { background: #ff3b30; border-color: #ff3b30; color: #fff; }
+
+    .channels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+    .channel-card { background: var(--card-bg); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; border: 1px solid var(--card-border); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .channel-card:hover { border-color: #ff3b30; transform: translateY(-2px); }
+    .channel-logo { width: 45px; height: 45px; object-fit: contain; background: var(--bg-color); border-radius: 8px; padding: 4px; }
+    .channel-title { font-size: 0.8rem; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Custom Settings Modal */
+    .settings-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 420px; background: var(--modal-bg); border-radius: 12px; z-index: 300; display: none; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid var(--card-border); }
+    .settings-modal.active { display: block; animation: modalPop 0.25s ease-out; }
+    @keyframes modalPop { 0% { transform: translate(-50%, -45%) scale(0.95); opacity: 0; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+    .settings-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px 10px; }
+    .settings-header h3 { font-size: 1.15rem; font-weight: 600; color: var(--text-color); }
+    .settings-tabs { display: flex; border-bottom: 1px solid var(--border-color); padding: 0 20px; gap: 20px; }
+    .tab-btn { background: none; border: none; color: var(--text-muted); font-weight: 700; font-size: 0.85rem; padding-bottom: 10px; cursor: pointer; position: relative; }
+    .tab-btn.active { color: var(--text-color); }
+    .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background-color: #ff3b30; border-radius: 2px; }
+    
+    .settings-content { padding: 10px 20px; max-height: 260px; overflow-y: auto; }
+    .setting-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; cursor: pointer; color: var(--text-color); font-size: 0.9rem; border-bottom: 1px solid var(--border-color); }
+    .setting-option:last-child { border-bottom: none; }
+    .custom-radio { width: 18px; height: 18px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .setting-option.selected .custom-radio { border-color: #ff3b30; }
+    .setting-option.selected .custom-radio::after { content: ''; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%; }
+
+    .settings-footer { display: flex; justify-content: flex-end; gap: 20px; padding: 15px 20px; border-top: 1px solid var(--border-color); }
+    .footer-btn { background: none; border: none; font-weight: 700; font-size: 0.9rem; cursor: pointer; }
+    .btn-cancel { color: var(--text-muted); } .btn-apply { color: #ff3b30; }
+
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 150; }
+    .overlay.active { display: block; }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 dark:bg-darkBg dark:text-slate-100 flex flex-col font-sans transition-colors duration-300 min-h-screen">
+<body>
 
-  <!-- Fixed Header -->
-  <header class="border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-4 py-2 flex items-center justify-between shrink-0 sticky top-0 z-50">
-    <div class="bg-brand text-white font-black text-sm px-2.5 py-0.5 rounded-lg tracking-wider">
-      NOVA<span class="text-amber-400">PRO</span>
+  <!-- App Intro / Splash Screen Loader -->
+  <div id="page-loader">
+    <div class="splash-logo-wrapper">
+      <i class="fa-solid fa-tv"></i>
+      <h2>Live TV Pro</h2>
     </div>
+    <div class="loader-ring"></div>
+  </div>
 
-    <div class="flex items-center gap-3">
-      <button id="themeToggleBtn" aria-label="Toggle Theme" class="relative w-12 h-6 bg-slate-300 dark:bg-zinc-700 rounded-full p-1 transition-colors duration-300 flex items-center focus:outline-none">
-        <div id="themeToggleThumb" class="w-4 h-4 rounded-full bg-white dark:bg-amber-400 shadow-md transform transition-transform duration-300 flex items-center justify-center translate-x-0 dark:translate-x-6">
-          <i id="themeIcon" data-lucide="sun" class="w-3 h-3 text-amber-500 dark:text-zinc-900 theme-icon-rotate"></i>
-        </div>
-      </button>
+  <!-- Modal Overlay -->
+  <div class="overlay" id="overlay" onclick="closeAllModals()"></div>
 
-      <button id="adminBtn" class="flex items-center gap-1.5 bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-300 dark:border-zinc-700">
-        <i data-lucide="shield" class="w-3.5 h-3.5 text-brand"></i>
-        <span>Admin Panel</span>
-      </button>
-    </div>
+  <!-- Header -->
+  <header>
+    <div class="logo"><i class="fa-solid fa-tv"></i> Live TV Pro</div>
+    <!-- Theme Toggle Switch -->
+    <button class="theme-toggle-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+      <i class="fa-solid fa-moon" id="theme-icon"></i>
+    </button>
   </header>
 
-  <!-- Sticky Video Player Section -->
-  <div class="sticky top-[45px] z-40 bg-black shadow-2xl border-b border-zinc-800">
-    <div class="max-w-4xl mx-auto w-full">
-      <div id="playerContainer" class="aspect-video w-full bg-black relative flex items-center justify-center max-h-[40vh] sm:max-h-[50vh]">
-        <video id="videoPlayer" class="w-full h-full object-contain" autoplay crossorigin="anonymous" playsinline></video>
-      </div>
-      
-      <!-- Video Info Control Bar -->
-      <div class="bg-slate-900 px-4 py-2 flex items-center justify-between border-t border-zinc-800">
-        <div class="flex items-center gap-2 overflow-hidden">
-          <div class="w-2 h-2 rounded-full bg-red-600 animate-ping shrink-0"></div>
-          <h2 id="currentChannelInfo" class="text-xs font-bold truncate text-white">Select a Channel</h2>
+  <!-- Sticky Player -->
+  <div class="sticky-player-area">
+    <div class="player-wrapper">
+      <video id="video-player" controls autoplay crossorigin playsinline></video>
+      <div class="now-playing">
+        <div class="now-playing-left">
+          <i class="fa-solid fa-circle-play" style="color: #ff3b30;"></i>
+          <span id="now-playing-title">Select a channel to play...</span>
         </div>
-        
-        <div class="flex items-center gap-2 shrink-0">
-          <button id="fullscreenBtn" class="flex items-center gap-1 bg-brand hover:bg-red-700 text-white px-3 py-1 rounded-lg text-xs font-semibold">
-            <i data-lucide="maximize" class="w-3.5 h-3.5"></i>
-            <span>Fullscreen</span>
-          </button>
-          
-          <button id="openSettingsModalBtn" class="flex items-center gap-1 bg-zinc-800 hover:bg-zinc-700 text-white px-3 py-1 rounded-lg text-xs border border-zinc-700">
-            <i data-lucide="settings" class="w-3.5 h-3.5 text-slate-400"></i>
-            <span>Settings</span>
-          </button>
-        </div>
+        <button class="settings-btn" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> Settings</button>
       </div>
     </div>
   </div>
 
-  <!-- Main Content -->
-  <div class="max-w-4xl w-full mx-auto p-4 flex flex-col gap-4">
-
-    <!-- Playlist Selector Horizontal Bar -->
-    <div>
-      <span class="text-[11px] font-bold text-slate-400 mb-1.5 block uppercase tracking-wider">Loaded Playlists</span>
-      <div id="categoryGrid" class="flex gap-2 overflow-x-auto pb-1 scrollbar-none"></div>
+  <!-- Main Container -->
+  <div class="container">
+    <div class="main-search-wrapper">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="channel-search-input" placeholder="Search your favorite channels..." onkeyup="filterChannels()">
     </div>
 
-    <!-- Search Input -->
-    <div class="relative">
-      <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-2.5 text-slate-400"></i>
-      <input type="text" id="searchInput" placeholder="Search channels..." class="w-full bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl pl-10 pr-4 py-2 text-xs outline-none focus:ring-1 focus:ring-brand">
-    </div>
+    <div class="section-title">Categories</div>
+    <div class="category-grid" id="category-grid"></div>
 
-    <!-- Header: Channels -->
-    <h3 id="channelHeaderTitle" class="text-lg font-bold text-slate-900 dark:text-white mt-1">
-      Channels
-    </h3>
-
-    <!-- Category Pills Horizontal Scroll -->
-    <div id="subCategoryPills" class="flex gap-2 overflow-x-auto pb-2 scrollbar-none"></div>
-
-    <!-- Channels Grid View -->
-    <div id="channelsGrid" class="grid grid-cols-2 gap-3 pb-10"></div>
-
-  </div>
-
-  <!-- SETTINGS MODAL -->
-  <div id="settingsModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-[#1c1c1e] text-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl border border-zinc-800">
-      <div class="flex justify-between items-center px-5 py-3.5 border-b border-zinc-800">
-        <h2 class="text-sm font-bold">Video Settings</h2>
-        <button id="closeSettingsModalBtn" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
-      </div>
-
-      <div class="flex border-b border-zinc-800 text-xs font-bold text-slate-400">
-        <button id="tabVideo" class="flex-1 py-2.5 border-b-2 border-brand text-brand text-center">VIDEO</button>
-        <button id="tabAudio" class="flex-1 py-2.5 text-center hover:text-slate-200">AUDIO</button>
-        <button id="tabText" class="flex-1 py-2.5 text-center hover:text-slate-200">TEXT</button>
-        <button id="tabSpeed" class="flex-1 py-2.5 text-center hover:text-slate-200">SPEED</button>
-      </div>
-
-      <div class="p-4 max-h-[320px] overflow-y-auto space-y-3">
-        <div id="contentVideo" class="space-y-3">
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <span class="text-xs font-bold text-slate-100">Auto</span>
-            <input type="radio" name="videoQualityOption" value="auto" class="custom-radio" checked>
-          </label>
-          <div id="dynamicQualityList" class="space-y-3 border-t border-zinc-800 pt-2"></div>
-        </div>
-
-        <div id="contentAudio" class="hidden space-y-3">
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">Auto</span>
-              <span class="text-[10px] text-slate-400">Automatic audio</span>
-            </div>
-            <input type="radio" name="audioOption" value="auto" class="custom-radio" checked>
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">None</span>
-              <span class="text-[10px] text-slate-400">No audio</span>
-            </div>
-            <input type="radio" name="audioOption" value="none" class="custom-radio">
-          </label>
-          <div id="dynamicAudioList" class="space-y-3 border-t border-zinc-800 pt-2"></div>
-        </div>
-
-        <div id="contentText" class="hidden space-y-3">
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <span class="text-xs font-bold text-slate-100">Auto</span>
-            <input type="radio" name="textOption" value="auto" class="custom-radio" checked>
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <span class="text-xs font-bold text-slate-100">None</span>
-            <input type="radio" name="textOption" value="none" class="custom-radio">
-          </label>
-          <div id="dynamicTextList" class="space-y-3 border-t border-zinc-800 pt-2"></div>
-        </div>
-
-        <div id="contentSpeed" class="hidden space-y-3">
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">0.25x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="0.25" class="custom-radio">
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">0.5x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="0.5" class="custom-radio">
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">0.75x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="0.75" class="custom-radio">
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">1.0x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="1.0" class="custom-radio" checked>
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">1.25x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="1.25" class="custom-radio">
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">1.5x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="1.5" class="custom-radio">
-          </label>
-          <label class="flex items-center justify-between cursor-pointer py-1">
-            <div>
-              <span class="text-xs font-bold block text-slate-100">2.0x</span>
-              <span class="text-[10px] text-slate-400">Playback speed</span>
-            </div>
-            <input type="radio" name="speedOption" value="2.0" class="custom-radio">
-          </label>
-        </div>
-      </div>
-
-      <div class="flex justify-end gap-6 px-5 py-3 border-t border-zinc-800 text-xs font-bold">
-        <button id="cancelSettingsBtn" class="text-slate-400 hover:text-white">CANCEL</button>
-        <button id="applySettingsBtn" class="text-brand hover:opacity-80">APPLY</button>
-      </div>
+    <div class="section-title" id="channel-section-title">Channels</div>
+    <div class="group-filters-container" id="group-filters-container" style="display: none;"></div>
+    <div class="channels-grid" id="channels-container">
+      <p style="color: var(--text-muted); grid-column: 1/-1;">ক্যাটাগরি সিলেক্ট করুন...</p>
     </div>
   </div>
 
-  <!-- ADMIN MODAL -->
-  <div id="adminModal" class="fixed inset-0 bg-black/75 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 w-full max-w-md rounded-2xl p-5 shadow-2xl relative max-h-[90vh] overflow-y-auto">
-      <button id="closeAdminBtn" class="absolute top-4 right-4 text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
-
-      <h2 class="text-sm font-bold mb-4 flex items-center gap-2"><i data-lucide="shield" class="text-brand"></i> Admin Panel</h2>
-
-      <div class="mb-4 bg-slate-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
-        <label class="text-xs font-bold text-slate-400 block">Add M3U/M3U8 Playlist URL</label>
-        <input type="text" id="m3uNameInput" placeholder="Playlist Name (e.g. Playlist 5)" class="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-xs outline-none">
-        <input type="text" id="m3uUrlInput" placeholder="M3U URL (https://...)" class="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-xs outline-none">
-        <button id="addUrlBtn" class="w-full bg-brand text-white py-1.5 rounded-lg text-xs font-bold">Add URL Playlist</button>
-      </div>
-
-      <div class="mb-4 bg-slate-50 dark:bg-zinc-800/50 p-3 rounded-xl border border-slate-200 dark:border-zinc-800 space-y-2">
-        <label class="text-xs font-bold text-slate-400 block">Upload M3U/M3U8 File</label>
-        <input type="text" id="fileNameInput" placeholder="Playlist Name (Optional)" class="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-lg px-3 py-1.5 text-xs outline-none">
-        <input type="file" id="fileUploadInput" accept=".m3u,.m3u8" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-700 file:text-white cursor-pointer">
-      </div>
-
-      <div class="border-t border-zinc-800 pt-3">
-        <label class="text-xs font-bold text-slate-400 block mb-2">Saved Playlists</label>
-        <div id="uploadedFilesList" class="max-h-36 overflow-y-auto space-y-1.5"></div>
-      </div>
+  <!-- Settings Modal -->
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-header">
+      <h3>Video Settings</h3>
+      <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="closeAllModals()"></i>
+    </div>
+    <div class="settings-tabs">
+      <button class="tab-btn active" id="tab-video-btn" onclick="switchTab('video')">Video</button>
+      <button class="tab-btn" id="tab-audio-btn" onclick="switchTab('audio')">Audio</button>
+      <button class="tab-btn" id="tab-text-btn" onclick="switchTab('text')">Text</button>
+      <button class="tab-btn" id="tab-speed-btn" onclick="switchTab('speed')">Speed</button>
+    </div>
+    <div class="settings-content" id="settings-options"></div>
+    <div class="settings-footer">
+      <button class="footer-btn btn-cancel" onclick="closeAllModals()">Cancel</button>
+      <button class="footer-btn btn-apply" onclick="applySettings()">Apply</button>
     </div>
   </div>
 
   <script>
-    let userUploadedFiles = JSON.parse(localStorage.getItem('nova_user_files')) || [];
+    const video = document.getElementById('video-player');
+    const nowPlayingTitle = document.getElementById('now-playing-title');
+    const channelsContainer = document.getElementById('channels-container');
+    const channelSectionTitle = document.getElementById('channel-section-title');
+    const categoryGrid = document.getElementById('category-grid');
+    const groupFiltersContainer = document.getElementById('group-filters-container');
+    const pageLoader = document.getElementById('page-loader');
+
     let hls = new Hls();
-    const video = document.getElementById('videoPlayer');
-    const playerContainer = document.getElementById('playerContainer');
-    let selectedFileId = userUploadedFiles.length > 0 ? userUploadedFiles[0].id : null;
-    let selectedSubCategory = "All";
-    let activeChannelId = null;
+    let plyrPlayer = null;
 
-    // Initialize Plyr Video Player
-    const player = new Plyr(video, {
-      controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
-      fullscreen: { enabled: true, fallback: true, iosNative: true }
-    });
+    let currentTab = 'video';
+    let availableLevels = [];
+    let tempSelectedLevel = -1;
+    let tempSelectedAudio = 'auto';
+    let tempSelectedText = 'auto';
+    let tempSelectedSpeed = 1;
 
-    lucide.createIcons();
+    let currentCategoryName = '';
+    let currentLoadedChannels = [];
+    let categoryCounts = {};
 
-    // Fullscreen and Orientation Lock Setup
-    async function toggleFullscreenAndLock() {
-      try {
-        if (!player.fullscreen.active) {
-          player.fullscreen.enter();
-          if (screen.orientation && screen.orientation.lock) {
-            await screen.orientation.lock('landscape').catch(e => console.log(e));
-          }
-        } else {
-          player.fullscreen.exit();
-        }
-      } catch (err) {
-        console.error("Fullscreen error:", err);
-      }
+    const defaultCategories = [
+      { id: 'cat_1', type: 'link', name: 'Bangladesh', icon: 'fa-tv', data: 'https://iptv-org.github.io/iptv/countries/bd.m3u' },
+      { id: 'cat_2', type: 'link', name: 'Sports', icon: 'fa-football', data: 'https://iptv-org.github.io/iptv/categories/sports.m3u' }
+    ];
+
+    function getCategories() {
+      const saved = localStorage.getItem('live_tv_categories');
+      return saved ? JSON.parse(saved) : defaultCategories;
     }
 
-    document.getElementById('fullscreenBtn').addEventListener('click', toggleFullscreenAndLock);
+    document.addEventListener('DOMContentLoaded', () => {
+      plyrPlayer = new Plyr(video, { controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'], autoplay: true });
+      initTheme();
+      loadCategoryCounts();
 
-    player.on('enterfullscreen', async () => {
-      if (screen.orientation && screen.orientation.lock) {
-        await screen.orientation.lock('landscape').catch(e => console.log(e));
-      }
+      // Hide Splash Loader smoothly after initialization
+      setTimeout(() => {
+        pageLoader.style.opacity = '0';
+        pageLoader.style.visibility = 'hidden';
+      }, 1200);
     });
 
-    player.on('exitfullscreen', () => {
-      if (screen.orientation && screen.orientation.unlock) {
-        screen.orientation.unlock();
-      }
-    });
+    /* Theme Toggle Logic */
+    function initTheme() {
+      const savedTheme = localStorage.getItem('app_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
 
-    // Theme Logic
-    const themeBtn = document.getElementById('themeToggleBtn');
-    const themeIcon = document.getElementById('themeIcon');
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('app_theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
 
-    function updateThemeUI(isDark) {
-      if (isDark) {
-        document.documentElement.classList.add('dark');
-        themeIcon.setAttribute('data-lucide', 'moon');
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('theme-icon');
+      if (theme === 'light') {
+        icon.className = 'fa-solid fa-sun';
       } else {
-        document.documentElement.classList.remove('dark');
-        themeIcon.setAttribute('data-lucide', 'sun');
+        icon.className = 'fa-solid fa-moon';
       }
-      lucide.createIcons();
     }
 
-    themeBtn.addEventListener('click', () => {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('nova_theme', isDark ? 'dark' : 'light');
-      updateThemeUI(isDark);
-    });
-
-    const savedTheme = localStorage.getItem('nova_theme') || 'dark';
-    updateThemeUI(savedTheme === 'dark');
-
-    function parseM3UText(m3uText) {
-      const lines = m3uText.split('\n');
-      let currentName = "", currentLogo = "", currentGroup = "General";
-      const channels = [];
-
-      lines.forEach(line => {
-        line = line.trim();
-        if (line.startsWith('#EXTINF:')) {
-          const logoMatch = line.match(/tvg-logo="([^"]+)"/);
-          if (logoMatch) currentLogo = logoMatch[1];
-
-          const groupMatch = line.match(/group-title="([^"]+)"/);
-          if (groupMatch) currentGroup = groupMatch[1];
-
-          const nameParts = line.split(',');
-          if (nameParts.length > 1) currentName = nameParts[nameParts.length - 1].trim();
-        } else if (line.startsWith('http')) {
-          if (currentName && line) {
-            channels.push({
-              id: Date.now() + Math.random(),
-              name: currentName,
-              logo: currentLogo || 'https://images.unsplash.com/photo-1593784991095-a205069470b6?w=100&auto=format&fit=crop&q=60',
-              group: currentGroup || 'General',
-              url: line
-            });
-          }
-          currentName = ""; currentLogo = ""; currentGroup = "General";
-        }
-      });
-      return channels;
+    /* Modal Controls */
+    function openSettingsModal() {
+      document.getElementById('settings-modal').classList.add('active');
+      document.getElementById('overlay').classList.add('active');
+      switchTab(currentTab);
     }
 
-    function renderCategoryCards() {
-      const container = document.getElementById('categoryGrid');
-      container.innerHTML = '';
-
-      if (userUploadedFiles.length === 0) {
-        container.innerHTML = `<p class="text-xs text-slate-400 py-1">Admin Panel থেকে ফাইল/লিংক যুক্ত করুন।</p>`;
-        renderChannels();
-        return;
-      }
-
-      userUploadedFiles.forEach(fileObj => {
-        const isSelected = selectedFileId === fileObj.id;
-        const card = document.createElement('div');
-        card.className = `px-3.5 py-1.5 rounded-lg flex items-center gap-2 cursor-pointer border shrink-0 transition text-xs font-semibold ${
-          isSelected 
-            ? 'bg-brand text-white border-brand shadow-sm' 
-            : 'bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-800 dark:text-slate-300'
-        }`;
-
-        card.innerHTML = `<i data-lucide="folder" class="w-3.5 h-3.5"></i> ${fileObj.name}`;
-
-        card.onclick = () => {
-          selectedFileId = fileObj.id;
-          selectedSubCategory = "All";
-          renderCategoryCards();
-          renderChannels();
-        };
-
-        container.appendChild(card);
-      });
-      lucide.createIcons();
+    function closeAllModals() {
+      document.getElementById('settings-modal').classList.remove('active');
+      document.getElementById('overlay').classList.remove('active');
     }
 
-    function renderChannels(filterQuery = "") {
-      const gridContainer = document.getElementById('channelsGrid');
-      const pillsContainer = document.getElementById('subCategoryPills');
-      gridContainer.innerHTML = "";
-      pillsContainer.innerHTML = "";
-
-      const activeFile = userUploadedFiles.find(f => f.id === selectedFileId);
-      if (!activeFile || !activeFile.channels || activeFile.channels.length === 0) {
-        document.getElementById('channelHeaderTitle').innerText = `Channels`;
-        gridContainer.innerHTML = `<p class="text-xs text-center text-slate-400 col-span-2 py-6">কোনো চ্যানেল পাওয়া যায়নি।</p>`;
-        return;
-      }
-
-      document.getElementById('channelHeaderTitle').innerText = `Channels (${activeFile.name} - ${activeFile.channels.length})`;
-
-      const groups = ["All"];
-      activeFile.channels.forEach(ch => {
-        const grp = ch.group || "General";
-        if (!groups.includes(grp)) groups.push(grp);
-      });
-
-      groups.sort((a, b) => {
-        if (a === "All") return -1;
-        if (b === "All") return 1;
-        return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
-      });
-
-      groups.forEach(grp => {
-        const isSelected = selectedSubCategory === grp;
-        const btn = document.createElement('button');
-        btn.className = `px-4 py-1.5 rounded-full text-xs font-semibold transition shrink-0 ${
-          isSelected 
-            ? 'bg-red-600 text-white shadow-md' 
-            : 'bg-slate-200 dark:bg-zinc-800/80 text-slate-700 dark:text-zinc-400 hover:bg-slate-300 dark:hover:bg-zinc-700'
-        }`;
-        btn.innerText = grp;
-        btn.onclick = () => {
-          selectedSubCategory = grp;
-          renderChannels(document.getElementById('searchInput').value);
-        };
-        pillsContainer.appendChild(btn);
-      });
-
-      const filteredChannels = activeFile.channels
-        .filter(ch => {
-          const matchesCategory = (selectedSubCategory === "All" || (ch.group || "General") === selectedSubCategory);
-          const matchesSearch = ch.name.toLowerCase().includes(filterQuery.toLowerCase());
-          return matchesCategory && matchesSearch;
-        })
-        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base', numeric: true }));
-
-      if (filteredChannels.length === 0) {
-        gridContainer.innerHTML = `<p class="text-xs text-center text-slate-400 col-span-2 py-6">কোনো চ্যানেল নেই।</p>`;
-        return;
-      }
-
-      filteredChannels.forEach(ch => {
-        const isActive = ch.id === activeChannelId;
-        const card = document.createElement('div');
-        card.className = `bg-white dark:bg-[#1a1a1a] border rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer transition ${
-          isActive ? 'border-red-600 ring-1 ring-red-600' : 'border-slate-200 dark:border-zinc-800/80 hover:border-slate-400 dark:hover:border-zinc-700'
-        }`;
-
-        card.onclick = () => {
-          activeChannelId = ch.id;
-          renderChannels(document.getElementById('searchInput').value);
-          playChannel(ch);
-        };
-
-        const resText = ch.name.includes('(') ? '' : ' (720p)';
-
-        card.innerHTML = `
-          <div class="w-16 h-12 bg-slate-100 dark:bg-black/60 rounded-lg flex items-center justify-center p-1 mb-3">
-            <img src="${ch.logo}" alt="${ch.name}" class="max-w-full max-h-full object-contain" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1593784991095-a205069470b6?w=100&auto=format&fit=crop&q=60';">
-          </div>
-          <h4 class="text-xs font-bold text-slate-800 dark:text-white tracking-wide truncate w-full">${ch.name}${resText}</h4>
-        `;
-
-        gridContainer.appendChild(card);
-      });
-    }
-
-    function playChannel(channel) {
-      document.getElementById('currentChannelInfo').innerText = channel.name;
+    function playStream(url, title) {
+      nowPlayingTitle.innerText = title;
+      tempSelectedLevel = -1; 
+      tempSelectedAudio = 'auto'; 
+      tempSelectedText = 'auto'; 
+      tempSelectedSpeed = 1;
 
       if (Hls.isSupported()) {
         hls.destroy();
         hls = new Hls();
-        hls.loadSource(channel.url);
+        hls.loadSource(url);
         hls.attachMedia(video);
-
-        hls.on(Hls.Events.MANIFEST_PARSED, function () {
-          populateModalOptions();
-          player.play();
+        hls.on(Hls.Events.MANIFEST_PARSED, () => { 
+          availableLevels = hls.levels; 
+          video.play(); 
         });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = channel.url;
-        player.play();
+        video.src = url;
+        video.play();
       }
     }
 
-    function populateModalOptions() {
-      const vidContainer = document.getElementById('dynamicQualityList');
-      const audioContainer = document.getElementById('dynamicAudioList');
-      const textContainer = document.getElementById('dynamicTextList');
-      
-      vidContainer.innerHTML = ""; 
-      audioContainer.innerHTML = "";
-      textContainer.innerHTML = "";
-
-      if (hls && hls.levels && hls.levels.length > 0) {
-        hls.levels.forEach((level, idx) => {
-          const w = level.width || 1280, h = level.height || 720;
-          const mbps = level.bitrate ? (level.bitrate / 1000000).toFixed(2) : "2.00";
-          const item = document.createElement('label');
-          item.className = "flex items-center justify-between cursor-pointer py-1";
-          item.innerHTML = `
-            <span class="text-xs font-bold text-slate-100">${w} × ${h} • ${mbps} Mbps</span>
-            <input type="radio" name="videoQualityOption" value="${idx}" class="custom-radio">
-          `;
-          vidContainer.appendChild(item);
-        });
-      }
-
-      if (hls && hls.audioTracks && hls.audioTracks.length > 0) {
-        hls.audioTracks.forEach((track, idx) => {
-          const lang = track.name || `Track ${idx + 1}`;
-          const bitrate = track.bitrate ? `${Math.round(track.bitrate / 1000)} kbps` : '128 kbps';
-          const item = document.createElement('label');
-          item.className = "flex items-center justify-between cursor-pointer py-1";
-          item.innerHTML = `
-            <div>
-              <span class="text-xs font-bold block text-slate-100">${lang}</span>
-              <span class="text-[10px] text-slate-400">${bitrate}</span>
-            </div>
-            <input type="radio" name="audioOption" value="${idx}" class="custom-radio">
-          `;
-          audioContainer.appendChild(item);
-        });
-      }
-
-      if (hls && hls.subtitleTracks && hls.subtitleTracks.length > 0) {
-        hls.subtitleTracks.forEach((track, idx) => {
-          const lang = track.name || track.lang || `Track ${idx + 1}`;
-          const item = document.createElement('label');
-          item.className = "flex items-center justify-between cursor-pointer py-1";
-          item.innerHTML = `
-            <span class="text-xs font-bold text-slate-100">${lang}</span>
-            <input type="radio" name="textOption" value="${idx}" class="custom-radio">
-          `;
-          textContainer.appendChild(item);
-        });
-      }
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`tab-${tab}-btn`).classList.add('active');
+      renderSettingsOptions();
     }
 
-    const tabs = [
-      { btn: 'tabVideo', content: 'contentVideo' },
-      { btn: 'tabAudio', content: 'contentAudio' },
-      { btn: 'tabText', content: 'contentText' },
-      { btn: 'tabSpeed', content: 'contentSpeed' }
-    ];
+    function renderSettingsOptions() {
+      const container = document.getElementById('settings-options');
+      container.innerHTML = '';
 
-    tabs.forEach(tab => {
-      document.getElementById(tab.btn).onclick = () => {
-        tabs.forEach(t => {
-          document.getElementById(t.btn).classList.remove('border-b-2', 'border-brand', 'text-brand');
-          document.getElementById(t.btn).classList.add('text-slate-400');
-          document.getElementById(t.content).classList.add('hidden');
-        });
-        document.getElementById(tab.btn).classList.add('border-b-2', 'border-brand', 'text-brand');
-        document.getElementById(tab.btn).classList.remove('text-slate-400');
-        document.getElementById(tab.content).classList.remove('hidden');
-      };
-    });
-
-    const settingsModal = document.getElementById('settingsModal');
-    document.getElementById('openSettingsModalBtn').onclick = () => settingsModal.classList.remove('hidden');
-    document.getElementById('closeSettingsModalBtn').onclick = () => settingsModal.classList.add('hidden');
-    document.getElementById('cancelSettingsBtn').onclick = () => settingsModal.classList.add('hidden');
-
-    document.getElementById('applySettingsBtn').onclick = () => {
-  // ১. ভিডিও কোয়ালিটি সেট করা
-  const selectedQuality = document.querySelector('input[name="videoQualityOption"]:checked');
-  if (selectedQuality && hls) {
-    const val = selectedQuality.value;
-    if (val === "auto") hls.currentLevel = -1;
-    else hls.currentLevel = parseInt(val);
-  }
-
-  // ২. অডিও ভাষা পরিবর্তন (English/অন্যান্য)
-  const selectedAudio = document.querySelector('input[name="audioOption"]:checked');
-  if (selectedAudio && hls) {
-    const val = selectedAudio.value;
-    if (val === "auto") {
-      hls.audioTrack = -1;
-    } else if (val === "none") {
-      video.muted = true;
-    } else {
-      video.muted = false;
-      hls.audioTrack = parseInt(val); // এখানে অডিও ট্র্যাক সেট হচ্ছে
-    }
-  }
-
-  // ৩. সাবটাইটেল বা টেক্সট (English Subtitles)
-  const selectedText = document.querySelector('input[name="textOption"]:checked');
-  if (selectedText && hls) {
-    const val = selectedText.value;
-    if (val === "none") {
-      hls.subtitleTrack = -1; // সাবটাইটেল বন্ধ
-      hls.subtitleDisplay = false;
-    } else if (val === "auto") {
-      hls.subtitleTrack = 0;
-      hls.subtitleDisplay = true;
-    } else {
-      hls.subtitleTrack = parseInt(val); // নির্দিষ্ট সাবটাইটেল চালু
-      hls.subtitleDisplay = true; // স্ক্রিনে লেখা দেখানোর জন্য এটি জরুরি
-    }
-  }
-
-  // ৪. প্লেব্যাক স্পিড
-  const selectedSpeed = document.querySelector('input[name="speedOption"]:checked');
-  if (selectedSpeed) {
-    player.speed = parseFloat(selectedSpeed.value);
-  }
-
-  settingsModal.classList.add('hidden');
-};
-
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      renderChannels(e.target.value);
-    });
-
-    const adminModal = document.getElementById('adminModal');
-    document.getElementById('adminBtn').onclick = () => {
-      adminModal.classList.remove('hidden');
-      renderUploadedFilesList();
-    };
-    document.getElementById('closeAdminBtn').onclick = () => adminModal.classList.add('hidden');
-
-    document.getElementById('addUrlBtn').onclick = async () => {
-      const name = document.getElementById('m3uNameInput').value.trim();
-      const url = document.getElementById('m3uUrlInput').value.trim();
-      if (!name || !url) return alert("নাম এবং URL পূরণ করুন।");
-
-      try {
-        const res = await fetch(url);
-        const txt = await res.text();
-        const parsedChannels = parseM3UText(txt);
-        
-        const newFileObj = { id: Date.now(), name: name, channels: parsedChannels };
-        userUploadedFiles.push(newFileObj);
-        selectedFileId = newFileObj.id;
-
-        localStorage.setItem('nova_user_files', JSON.stringify(userUploadedFiles));
-        renderCategoryCards();
-        renderChannels();
-        renderUploadedFilesList();
-        document.getElementById('m3uNameInput').value = "";
-        document.getElementById('m3uUrlInput').value = "";
-        alert("প্লেলিস্ট যুক্ত হয়েছে!");
-      } catch (e) {
-        alert("ডেটা আনা যায়নি।");
-      }
-    };
-
-    document.getElementById('fileUploadInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      let name = document.getElementById('fileNameInput').value.trim();
-      if (!name && file) name = file.name.replace(/\.[^/.]+$/, "");
-
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-          const parsedChannels = parseM3UText(event.target.result);
-          const newFileObj = { id: Date.now(), name: name, channels: parsedChannels };
-          
-          userUploadedFiles.push(newFileObj);
-          selectedFileId = newFileObj.id;
-
-          localStorage.setItem('nova_user_files', JSON.stringify(userUploadedFiles));
-          renderCategoryCards();
-          renderChannels();
-          renderUploadedFilesList();
-          document.getElementById('fileNameInput').value = "";
-          alert(`"${name}" ফাইল আপলোড হয়েছে!`);
-        };
-        reader.readAsText(file);
-      }
-    });
-
-    function renderUploadedFilesList() {
-      const list = document.getElementById('uploadedFilesList');
-      list.innerHTML = '';
-      if (userUploadedFiles.length === 0) {
-        list.innerHTML = `<p class="text-xs text-slate-500 py-2 text-center">কোনো কাস্টম প্লেলিস্ট নেই।</p>`;
-        return;
-      }
-      userUploadedFiles.forEach(fileObj => {
-        const item = document.createElement('div');
-        item.className = "flex justify-between items-center text-xs p-2 bg-slate-100 dark:bg-zinc-800 rounded-lg";
-        item.innerHTML = `
-          <div class="overflow-hidden pr-2">
-            <span class="font-bold block truncate text-slate-800 dark:text-slate-200">${fileObj.name}</span>
-            <span class="text-[10px] text-slate-400">${fileObj.channels.length} channels</span>
+      if (currentTab === 'video') {
+        container.innerHTML += `
+          <div class="setting-option ${tempSelectedLevel === -1 ? 'selected' : ''}" onclick="tempSelectedLevel=-1;renderSettingsOptions();">
+            <span>Auto</span>
+            <div class="custom-radio"></div>
           </div>
-          <button onclick="deleteUploadedFile(${fileObj.id})" class="text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded">Delete</button>
         `;
-        list.appendChild(item);
+
+        if (availableLevels && availableLevels.length > 0) {
+          availableLevels.forEach((level, index) => {
+            const w = level.width || 1280;
+            const h = level.height || 720;
+            const mbps = level.bitrate ? (level.bitrate / 1000000).toFixed(2) + ' Mbps' : '';
+            const label = `${w} × ${h} ${mbps ? '• ' + mbps : ''}`;
+
+            container.innerHTML += `
+              <div class="setting-option ${tempSelectedLevel === index ? 'selected' : ''}" onclick="tempSelectedLevel=${index};renderSettingsOptions();">
+                <span>${label}</span>
+                <div class="custom-radio"></div>
+              </div>
+            `;
+          });
+        }
+      } 
+      else if (currentTab === 'audio') {
+        const audioTracks = hls ? (hls.audioTracks || []) : [];
+
+        container.innerHTML += `
+          <div class="setting-option ${tempSelectedAudio === 'auto' ? 'selected' : ''}" onclick="tempSelectedAudio='auto';renderSettingsOptions();">
+            <span>Auto</span>
+            <div class="custom-radio"></div>
+          </div>
+          <div class="setting-option ${tempSelectedAudio === 'none' ? 'selected' : ''}" onclick="tempSelectedAudio='none';renderSettingsOptions();">
+            <span>None</span>
+            <div class="custom-radio"></div>
+          </div>
+        `;
+
+        if (audioTracks.length > 0) {
+          audioTracks.forEach((track, index) => {
+            const lang = track.name || track.lang || 'Audio Track ' + (index + 1);
+            const channelInfo = track.channels ? (track.channels === 2 ? 'Stereo' : track.channels + ' Channels') : 'Stereo';
+            const bitrate = track.bitrate ? Math.round(track.bitrate / 1000) + ' kbps' : '128 kbps';
+            const label = `${lang} • ${channelInfo} ${bitrate}`;
+
+            container.innerHTML += `
+              <div class="setting-option ${tempSelectedAudio === index ? 'selected' : ''}" onclick="tempSelectedAudio=${index};renderSettingsOptions();">
+                <span>${label}</span>
+                <div class="custom-radio"></div>
+              </div>
+            `;
+          });
+        }
+      } 
+      else if (currentTab === 'text') {
+        const subtitleTracks = hls ? (hls.subtitleTracks || []) : [];
+
+        container.innerHTML += `
+          <div class="setting-option ${tempSelectedText === 'auto' ? 'selected' : ''}" onclick="tempSelectedText='auto';renderSettingsOptions();">
+            <span>Auto</span>
+            <div class="custom-radio"></div>
+          </div>
+          <div class="setting-option ${tempSelectedText === 'none' ? 'selected' : ''}" onclick="tempSelectedText='none';renderSettingsOptions();">
+            <span>None</span>
+            <div class="custom-radio"></div>
+          </div>
+        `;
+
+        if (subtitleTracks.length > 0) {
+          subtitleTracks.forEach((track, index) => {
+            const langName = track.name || track.lang || 'Subtitle ' + (index + 1);
+            const label = `${langName} (CC)`;
+
+            container.innerHTML += `
+              <div class="setting-option ${tempSelectedText === index ? 'selected' : ''}" onclick="tempSelectedText=${index};renderSettingsOptions();">
+                <span>${label}</span>
+                <div class="custom-radio"></div>
+              </div>
+            `;
+          });
+        }
+      }
+      else if (currentTab === 'speed') {
+        [0.5, 0.75, 1, 1.25, 1.5, 2].forEach(sp => {
+          container.innerHTML += `
+            <div class="setting-option ${tempSelectedSpeed === sp ? 'selected' : ''}" onclick="tempSelectedSpeed=${sp};renderSettingsOptions();">
+              <span>${sp === 1 ? 'Normal' : sp + 'x'}</span>
+              <div class="custom-radio"></div>
+            </div>
+          `;
+        });
+      }
+    }
+
+    function applySettings() {
+      if (hls) {
+        hls.currentLevel = tempSelectedLevel;
+
+        if (tempSelectedAudio === 'auto') { 
+          hls.audioTrack = -1; video.muted = false; 
+        } else if (tempSelectedAudio === 'none') { 
+          video.muted = true; 
+        } else if (typeof tempSelectedAudio === 'number') { 
+          video.muted = false; hls.audioTrack = tempSelectedAudio; 
+        }
+
+        if (tempSelectedText === 'auto') { 
+          hls.subtitleTrack = -1; hls.subtitleDisplay = true; 
+        } else if (tempSelectedText === 'none') { 
+          hls.subtitleTrack = -1; hls.subtitleDisplay = false; 
+        } else if (typeof tempSelectedText === 'number') { 
+          hls.subtitleTrack = tempSelectedText; hls.subtitleDisplay = true; 
+        }
+      }
+      
+      video.playbackRate = tempSelectedSpeed;
+      closeAllModals();
+    }
+
+    function parseM3U(content) {
+      const lines = content.split('\n');
+      const channels = [];
+      let currentChannel = {};
+
+      for (let i = 0; i < lines.length; i++) {
+        let line = lines[i].trim();
+        if (line.startsWith('#EXTINF:')) {
+          const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+          currentChannel.logo = logoMatch ? logoMatch[1] : '';
+          const groupMatch = line.match(/group-title="([^"]+)"/);
+          currentChannel.group = groupMatch ? groupMatch[1] : 'General';
+          const nameParts = line.split(',');
+          currentChannel.name = nameParts[nameParts.length - 1].trim() || 'Unknown';
+        } else if (line.length > 0 && !line.startsWith('#')) {
+          currentChannel.url = line;
+          channels.push(currentChannel);
+          currentChannel = {};
+        }
+      }
+      return channels;
+    }
+
+    async function loadCategoryCounts() {
+      const categories = getCategories();
+      renderCategories();
+
+      for (const cat of categories) {
+        if (cat.type === 'content') {
+          categoryCounts[cat.id] = parseM3U(cat.data).length;
+        } else if (cat.type === 'link') {
+          try {
+            const res = await fetch(cat.data);
+            const text = await res.text();
+            categoryCounts[cat.id] = parseM3U(text).length;
+          } catch(e) { categoryCounts[cat.id] = 0; }
+        }
+        updateCategoryCountBadge(cat.id, categoryCounts[cat.id]);
+      }
+    }
+
+    function updateCategoryCountBadge(catId, count) {
+      const badge = document.getElementById(`cat-count-${catId}`);
+      if (badge && count !== undefined) badge.innerText = `(${count})`;
+    }
+
+    function onCategoryClick(catId) {
+      const categories = getCategories();
+      const category = categories.find(c => c.id === catId);
+      if(!category) return;
+
+      currentCategoryName = category.name;
+      document.getElementById('channel-search-input').value = '';
+      channelSectionTitle.innerText = `Channels (${category.name})`;
+      channelsContainer.innerHTML = "<p style='color: var(--text-muted);'>লোডিং...</p>";
+      groupFiltersContainer.style.display = 'none';
+
+      if (category.type === 'link') {
+        fetch(category.data)
+          .then(res => res.text())
+          .then(data => {
+            currentLoadedChannels = parseM3U(data);
+            setupGroupFilters(currentLoadedChannels);
+            displayChannels(currentLoadedChannels);
+          });
+      } else {
+        currentLoadedChannels = parseM3U(category.data);
+        setupGroupFilters(currentLoadedChannels);
+        displayChannels(currentLoadedChannels);
+      }
+    }
+
+    /* Group Filters Sorted A-Z */
+    function setupGroupFilters(channels) {
+      groupFiltersContainer.innerHTML = "";
+      
+      // Extract unique groups and sort them Alphabetically A to Z
+      const rawGroups = [...new Set(channels.map(ch => ch.group).filter(Boolean))];
+      rawGroups.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+
+      if (rawGroups.length <= 1) return;
+
+      const sortedGroups = ['All', ...rawGroups];
+
+      groupFiltersContainer.style.display = 'flex';
+      sortedGroups.forEach(group => {
+        const chip = document.createElement('div');
+        chip.className = 'group-chip';
+        chip.innerText = group;
+        chip.onclick = (e) => {
+          document.querySelectorAll('.group-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          displayChannels(group === 'All' ? currentLoadedChannels : currentLoadedChannels.filter(c => c.group === group));
+        };
+        if(group === 'All') chip.classList.add('active');
+        groupFiltersContainer.appendChild(chip);
       });
     }
 
-    window.deleteUploadedFile = function (fileId) {
-      if (confirm("এই প্লেলিস্টটি মুছে ফেলতে চান?")) {
-        userUploadedFiles = userUploadedFiles.filter(f => f.id !== fileId);
-        selectedFileId = userUploadedFiles.length > 0 ? userUploadedFiles[0].id : null;
-        localStorage.setItem('nova_user_files', JSON.stringify(userUploadedFiles));
-        renderCategoryCards();
-        renderChannels();
-        renderUploadedFilesList();
-      }
-    };
+    function displayChannels(channels) {
+      channelsContainer.innerHTML = "";
+      channelSectionTitle.innerText = `Channels (${currentCategoryName} - ${channels.length})`;
 
-    renderCategoryCards();
-    renderChannels();
+      const defaultIcon = "https://cdn-icons-png.flaticon.com/512/3075/3075908.png";
+      channels.forEach(ch => {
+        const card = document.createElement('div');
+        card.className = 'channel-card';
+        card.onclick = () => playStream(ch.url, ch.name);
+        card.innerHTML = `<img class="channel-logo" src="${ch.logo || defaultIcon}" onerror="this.src='${defaultIcon}'"><div class="channel-title">${ch.name}</div>`;
+        channelsContainer.appendChild(card);
+      });
+    }
+
+    function renderCategories() {
+      const categories = getCategories();
+      categoryGrid.innerHTML = "";
+
+      categories.forEach(cat => {
+        const countText = categoryCounts[cat.id] !== undefined ? `(${categoryCounts[cat.id]})` : '(...)';
+        const card = document.createElement('div');
+        card.className = 'category-card';
+        card.onclick = () => onCategoryClick(cat.id);
+        card.innerHTML = `
+          <div class="category-icon"><i class="fa-solid ${cat.icon || 'fa-list'}"></i></div>
+          <div class="category-name">${cat.name} <span class="channel-count-badge" id="cat-count-${cat.id}">${countText}</span></div>
+        `;
+        categoryGrid.appendChild(card);
+      });
+    }
+
+    function filterChannels() {
+      const query = document.getElementById('channel-search-input').value.toLowerCase();
+      document.querySelectorAll('#channels-container .channel-card').forEach(card => {
+        card.style.display = card.querySelector('.channel-title').innerText.toLowerCase().includes(query) ? 'flex' : 'none';
+      });
+    }
   </script>
 </body>
 </html>
